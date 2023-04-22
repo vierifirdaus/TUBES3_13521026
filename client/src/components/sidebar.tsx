@@ -1,6 +1,5 @@
 import React from 'react';
 import { 
-    Box,
     Button
 } from '@chakra-ui/react'
 import {
@@ -24,7 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className,questions }) => {
                 {questions.map((question) => (
                     <Button size="lg" m="1" variant="sideButtonHover" leftIcon={<ChatIcon/>} justifyContent="flex-start">
                         {
-                        question.length > 20 ? question.substring(0,20) + "..." : question
+                        question.length > 18 ? question.substring(0,18) + "..." : question
                         }
                     </Button>
                 ))}
