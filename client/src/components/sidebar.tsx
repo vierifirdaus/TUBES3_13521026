@@ -23,11 +23,9 @@ const Sidebar: React.FC<SidebarProps> = ({ className,questions }) => {
                 <Button size="lg" m="1" variant="sideButtonAdd" leftIcon={<AddIcon/>} justifyContent="flex-start">New Chat</Button>
                 {questions.map((question) => (
                     <Button size="lg" m="1" variant="sideButtonHover" leftIcon={<ChatIcon/>} justifyContent="flex-start">
-                        <Box textAlign="left">
                         {
                         question.length > 20 ? question.substring(0,20) + "..." : question
                         }
-                        </Box>
                     </Button>
                 ))}
         </div>
