@@ -1,15 +1,15 @@
 package main
 
 import (
-	"net/http"
+	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-	server := http.Server{
-		Addr: "localhost:8080",
-	}
-	err := server.ListenAndServe()
+	db, err := sql.Open("mysql", "root:password@tcp(localhost:3306)/test")
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
+	defer db.Close()
 }
