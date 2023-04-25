@@ -7,7 +7,7 @@ export interface message {
 
 export interface chatProps {
     className: string;
-    messages: message[];
+    clickSide : number;
 }
 
 export interface messageProps {
@@ -16,7 +16,7 @@ export interface messageProps {
 
 export interface sidebarProps {
     className: string,
-    histories: history[]
+    setClickSide : React.Dispatch<React.SetStateAction<number>>
   }
 
 export interface history{

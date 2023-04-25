@@ -8,20 +8,22 @@ import {
 import SideButton from './sideButton';
 import { history, sidebarProps } from '../interface';
 
-const Sidebar: React.FC<sidebarProps> = ({ className,histories }) => {
+const Sidebar: React.FC<sidebarProps> = ({ className,setClickSide}) => {
   const [history, setHistories] = useState<history[]>([]);
   const [clicked, setClicked] = useState<number>(-1);
-  useEffect(() => {
-    setHistories(histories);
-  }, []);
   const handleClick = (i:number) => {
     setClicked(i);
+    setClickSide(i);
   }
 
   const handleDelete = (i : number) => {
     /* sementara */
     setHistories(history.filter((history) => history.id !== i));
   }
+  useEffect(() => {
+    const histories: history[] = [{id:1,nama:"siapaaaaaaaa kamu??"},{id:2,nama:"kamu??"},{id:3,nama:"siapa kamu??"}]
+    setHistories(histories);
+  }, []);
   return (
     <div className={className}>
         <div className='flex flex-col'>
