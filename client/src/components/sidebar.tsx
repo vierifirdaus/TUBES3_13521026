@@ -1,31 +1,33 @@
-import React from 'react';
+import React,{useState,useEffect} from 'react';
 import { 
     Button
-} from '@chakra-ui/react'
+} from '@chakra-ui/react';
 import {
-    ChatIcon,
     AddIcon
-} from '@chakra-ui/icons'
+} from '@chakra-ui/icons';
+import SideButton from './sideButton';
+import { history, sidebarProps } from '../interface';
 
+const Sidebar: React.FC<sidebarProps> = ({ className,histories }) => {
+  const [history, setHistories] = useState<history[]>([]);
+  const [clicked, setClicked] = useState<number>(-1);
+  useEffect(() => {
+    setHistories(histories);
+  }, []);
+  const handleClick = (i:number) => {
+    setClicked(i);
+  }
 
-
-
-interface SidebarProps {
-  className: string,
-  questions: string[]
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ className,questions }) => {
+  const handleDelete = (i : number) => {
+    /* sementara */
+    setHistories(history.filter((history) => history.id !== i));
+  }
   return (
     <div className={className}>
         <div className='flex flex-col'>
-                <Button size="lg" m="1" variant="sideButtonAdd" leftIcon={<AddIcon/>} justifyContent="flex-start">New Chat</Button>
-                {questions.map((question) => (
-                    <Button size="lg" m="1" variant="sideButtonHover" leftIcon={<ChatIcon/>} justifyContent="flex-start">
-                        {
-                        question.length > 18 ? question.substring(0,18) + "..." : question
-                        }
-                    </Button>
+                <Button size="lg" m="1" variant="sideButtonAdd" leftIcon={<AddIcon/>} justifyContent="flex-center">New Chat</Button>
+                {history.map((i:history) => (
+                    <SideButton key={i.id} history={i} clicked={clicked} handleClick={handleClick} handleDelete={handleDelete}/>
                 ))}
         </div>
     </div>
