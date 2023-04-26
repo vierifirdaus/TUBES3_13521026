@@ -116,7 +116,7 @@ const Chat : React.FC<chatProps> = ({className,clickSide}) => {
     const getBotResponse = async () => {
         setIsLoading(true)
         const response = await setTimeout(() => {
-            setChatLog(prevChatLog => [...prevChatLog, {id: prevChatLog.length + 1, id_histori: 1, Jenis: "output", Isi: "tes response"}])
+            setChatLog(prevChatLog => [...prevChatLog, {id: prevChatLog.length + 1, id_histori: 1, Jenis: "output", Isi: "In the example above, the sendIcon.svg image is imported and passed as a component to the icon prop of the IconButton component, making it the icon for the button. Please make sure that the sendIcon.svg image file is located in the correct path and that it's properly imported into your component. You can adjust the styling and positioning of the IconButton component and the Input component using the respective Chakra UI props and Tailwind CSS classes to achieve the desired look for your send message input component."}])
             setIsLoading(false)
         }, 8000)
     }

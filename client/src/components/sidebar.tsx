@@ -17,7 +17,7 @@ const Sidebar: React.FC<sidebarProps> = ({ className,setClickSide}) => {
   }
 
   const handleDelete = (i : number) => {
-    /* sementara */
+    /* sementara  nanti disini update history */
     setHistories(history.filter((history) => history.id !== i));
   }
   useEffect(() => {
@@ -27,7 +27,7 @@ const Sidebar: React.FC<sidebarProps> = ({ className,setClickSide}) => {
   return (
     <div className={className}>
         <div className='flex flex-col'>
-                <Button size="lg" m="1" variant="sideButtonAdd" leftIcon={<AddIcon/>} justifyContent="flex-center">New Chat</Button>
+                <Button size="lg" m="1" variant="sideButtonAdd" leftIcon={<AddIcon/>} justifyContent="flex-center" onClick={()=>handleClick(-1)}>New Chat</Button>
                 {history.map((i:history) => (
                     <SideButton key={i.id} history={i} clicked={clicked} handleClick={handleClick} handleDelete={handleDelete}/>
                 ))}
