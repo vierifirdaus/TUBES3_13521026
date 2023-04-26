@@ -10,6 +10,13 @@ const sideButtonHover= defineStyle({
     }
 })
 
+const sideButtonClick= defineStyle({
+    color:'white',
+    background:'#40414f',
+    fontWeight:'normal',
+    fontSize:'15px'
+})
+
 const sideButtonAdd = defineStyle({
     color:'white',
     background:'#202123',
@@ -25,6 +32,7 @@ const sideButtonAdd = defineStyle({
 export const buttonTheme = defineStyleConfig({
     variants: {
         sideButtonHover,
-        sideButtonAdd
+        sideButtonAdd,
+        sideButtonClick
     }
 })
