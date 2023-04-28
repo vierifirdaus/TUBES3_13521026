@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 type (
@@ -22,6 +22,7 @@ type (
 	HistoriReq struct {
 		Nama string `json:"nama"`
 	}
+
 	Histori struct {
 		Nama string   `json:"nama"`
 		Isi  []Respon `json:"isi"`
@@ -31,14 +32,46 @@ type (
 		Jenis      string `json:"jenis"`
 		Isi        string `json:"isi"`
 	}
+
+	HistoriReqId struct {
+		ID_histori int `json:"id_histori"`
+	}
+
+	HistoriId struct {
+		ID_histori int    `json:"id"`
+		Nama       string `json:"nama"`
+	}
 )
 
 func connect() (*sql.DB, error) {
-	db, err := sql.Open("mysql", os.Getenv("DATABASE_URL")+"/tubes3")
+	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)"+"/tubes3")
 	if err != nil {
 		fmt.Println("error")
 	}
 	return db, err
+}
+
+func getAllHistori(c echo.Context) error {
+	db, err := connect()
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, "error 1")
+	}
+	defer db.Close()
+	rows, err := db.Query("select * from histori")
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, "error 2")
+	}
+	defer rows.Close()
+	var isi []HistoriId
+	for rows.Next() {
+		var respon HistoriId
+		err := rows.Scan(&respon.ID_histori, &respon.Nama)
+		if err != nil {
+			return c.JSON(http.StatusUnprocessableEntity, "error 3")
+		}
+		isi = append(isi, respon)
+	}
+	return c.JSON(http.StatusOK, isi)
 }
 
 func findAnswer(c echo.Context) error {
@@ -141,6 +174,62 @@ func addRespon(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, respon)
+}
+
+func getChatFromId(c echo.Context) error {
+	var histori HistoriReqId
+	err := c.Bind(&histori)
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, "error 1")
+	}
+	db, err := connect()
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, "error 1")
+	}
+	defer db.Close()
+	rows, err := db.Query("select h.ID_histori, r.Jenis, r.Isi from histori as h, respon as r where h.ID_histori=r.ID_histori AND h.ID_histori=?", histori.ID_histori)
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, "error 2")
+	}
+	defer rows.Close()
+	var isi []Respon
+	for rows.Next() {
+		var respon Respon
+		err := rows.Scan(&respon.ID_histori, &respon.Jenis, &respon.Isi)
+		if err != nil {
+			return c.JSON(http.StatusUnprocessableEntity, "error 3")
+		}
+		isi = append(isi, respon)
+	}
+	return c.JSON(http.StatusOK, isi)
+}
+
+func getChatFromId(c echo.Context) error {
+	var histori HistoriReqId
+	err := c.Bind(&histori)
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, "error 1")
+	}
+	db, err := connect()
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, "error 1")
+	}
+	defer db.Close()
+	rows, err := db.Query("select h.ID_histori, r.Jenis, r.Isi from histori as h, respon as r where h.ID_histori=r.ID_histori AND h.ID_histori=?", histori.ID_histori)
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, "error 2")
+	}
+	defer rows.Close()
+	var isi []Respon
+	for rows.Next() {
+		var respon Respon
+		err := rows.Scan(&respon.ID_histori, &respon.Jenis, &respon.Isi)
+		if err != nil {
+			return c.JSON(http.StatusUnprocessableEntity, "error 3")
+		}
+		isi = append(isi, respon)
+	}
+	return c.JSON(http.StatusOK, isi)
 }
 
 func showHistori(c echo.Context) error {
@@ -334,12 +423,22 @@ func min(a, b int) int {
 
 func main() {
 	e := echo.New()
+	// Middleware
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 
+	// CORS
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:8080"},
+		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+	}))
 	e.GET("find", findAnswer)
 	e.POST("quest", addQuestion)
 	e.POST("respon", addRespon)
 	e.GET("chat", showHistori)
 	e.POST("histori", addHistori)
+	e.GET("chat", getChatFromId)
 	e.DELETE("histori", deleteHistori)
-	e.Start(":1234")
+	e.GET("allhistori", getAllHistori)
+	e.Logger.Fatal(e.Start(":1234"))
 }

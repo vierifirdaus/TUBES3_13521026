@@ -43,7 +43,7 @@ const SideButton :React.FC<buttonProps> = ({history,clicked,handleClick,handleDe
       <>
       {editing ? (
         <>
-          <Box className='flex flex-row bg-[#40414f] rounded items-center min-w-full px-3'>
+          <Box className='w-full flex flex-row bg-[#40414f] rounded items-center min-w-full px-3 my-2'>
             <ChatIcon color={"white"}/>
             <Input
               size="sm"
@@ -73,8 +73,8 @@ const SideButton :React.FC<buttonProps> = ({history,clicked,handleClick,handleDe
           </Box>
         </>
       ) : (
-          <ButtonGroup className="" isAttached >
-            <Button size="lg" m={0} variant="sideButtonClick" leftIcon={<ChatIcon />} justifyContent="flex-start">
+          <ButtonGroup className="w-full my-2" isAttached >
+            <Button className="w-full" size="lg" m={0} variant="sideButtonClick" leftIcon={<ChatIcon />} justifyContent="flex-start">
               {name.length > 10 ? name.substring(0, 10) + "..." : name}
             </Button>
             <IconButton
@@ -103,7 +103,7 @@ const SideButton :React.FC<buttonProps> = ({history,clicked,handleClick,handleDe
   )
   :
   (
-    <Button size="lg" m="1" variant="sideButtonHover" leftIcon={<ChatIcon/>} justifyContent="flex-start" onClick={() => handleClick(history.id)}>
+    <Button className="w-full my-2" size="lg"  variant="sideButtonHover" leftIcon={<ChatIcon/>} justifyContent="flex-start" onClick={() => handleClick(history.id)}>
                         {
                           name.length > 18 ? name.substring(0,18) + "..." : name
                         }

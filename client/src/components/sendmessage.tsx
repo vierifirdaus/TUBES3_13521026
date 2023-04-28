@@ -5,7 +5,7 @@ import { sendMessageProps } from 'src/interface'
 
 const SendMessage:React.FC<sendMessageProps> = ({inputValue,setInputValue,handleInput}) =>{
   return (
-    <div className="sticky bottom-0 left-0 right-0 px-28 py-5 bg-gradient-to-t from-[#40414f]">
+    <div className="px-28 py-5 bg-gradient-to-t from-[#40414f]">
       <form onSubmit={handleInput}>
         <FormControl className='flex flex-row gap-3 bg-[#40414f] py-1 pl-5 pr-1 rounded-md'>
             <Input   autoComplete="off" placeholder="Type your message here" variant='unstyled' value={inputValue} onChange={(e)=>setInputValue(e.target.value)}/>
