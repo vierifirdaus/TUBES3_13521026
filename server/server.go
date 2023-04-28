@@ -204,34 +204,6 @@ func getChatFromId(c echo.Context) error {
 	return c.JSON(http.StatusOK, isi)
 }
 
-func getChatFromId(c echo.Context) error {
-	var histori HistoriReqId
-	err := c.Bind(&histori)
-	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, "error 1")
-	}
-	db, err := connect()
-	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, "error 1")
-	}
-	defer db.Close()
-	rows, err := db.Query("select h.ID_histori, r.Jenis, r.Isi from histori as h, respon as r where h.ID_histori=r.ID_histori AND h.ID_histori=?", histori.ID_histori)
-	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, "error 2")
-	}
-	defer rows.Close()
-	var isi []Respon
-	for rows.Next() {
-		var respon Respon
-		err := rows.Scan(&respon.ID_histori, &respon.Jenis, &respon.Isi)
-		if err != nil {
-			return c.JSON(http.StatusUnprocessableEntity, "error 3")
-		}
-		isi = append(isi, respon)
-	}
-	return c.JSON(http.StatusOK, isi)
-}
-
 func showHistori(c echo.Context) error {
 	HistoriID := c.QueryParam("Id_histori")
 	db, err := connect()
