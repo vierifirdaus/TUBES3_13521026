@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
@@ -80,13 +82,15 @@ func findAnswer(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, "error 1")
 	}
 
+	quest.Pertanyaan = strings.ToLower(quest.Pertanyaan)
+
 	db, err := connect()
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, "error 2")
 	}
 	defer db.Close()
 
-	row := db.QueryRow("SELECT jawaban FROM pertanyaan WHERE pertanyaan = ?", quest.Pertanyaan)
+	row := db.QueryRow("SELECT jawaban FROM pertanyaan WHERE LOWER(pertanyaan) = ?", quest.Pertanyaan)
 	var answer string
 	err = row.Scan(&answer)
 	if err != nil {
@@ -291,6 +295,96 @@ func deleteHistori(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, histori)
+}
+
+// Knuth-Morris-Pratt algorithm
+func KMP(text, pattern string) int {
+	if len(pattern) == 0 {
+		return 0
+	}
+	prefix := prefix(pattern)
+	i := 0
+	j := 0
+	for i < len(text) {
+		if text[i] == pattern[j] {
+			i++
+			j++
+			if j == len(pattern) {
+				return i - j
+			}
+		} else {
+			if j == 0 {
+				i++
+			} else {
+				j = prefix[j-1]
+			}
+		}
+	}
+	return -1
+}
+
+func prefix(pattern string) []int {
+	prefix := make([]int, len(pattern))
+	i := 1
+	j := 0
+	for i < len(pattern) {
+		if pattern[i] == pattern[j] {
+			prefix[i] = j + 1
+			i++
+			j++
+		} else {
+			if j == 0 {
+				prefix[i] = 0
+				i++
+			} else {
+				j = prefix[j-1]
+			}
+		}
+	}
+	return prefix
+}
+
+// Boyer-Moore algorithm
+func BM(text, pattern string) int {
+	if len(pattern) == 0 {
+		return 0
+	}
+	last := last(pattern)
+	i := len(pattern) - 1
+	j := len(pattern) - 1
+	for i < len(text) {
+		if text[i] == pattern[j] {
+			if j == 0 {
+				return i
+			} else {
+				i--
+				j--
+			}
+		} else {
+			lo := last[int(text[i])]
+			i = i + len(pattern) - min(j, 1+lo)
+			j = len(pattern) - 1
+		}
+	}
+	return -1
+}
+
+func last(pattern string) []int {
+	last := make([]int, 256)
+	for i := 0; i < 256; i++ {
+		last[i] = -1
+	}
+	for i := 0; i < len(pattern); i++ {
+		last[int(pattern[i])] = i
+	}
+	return last
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 func main() {
