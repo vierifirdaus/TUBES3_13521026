@@ -1,8 +1,8 @@
 export interface message {
     id : number;
     id_histori : number;
-    Jenis : "input" | "output";
-    Isi : string;
+    jenis : "input" | "output";
+    isi : string;
 }
 
 export interface chatProps {
@@ -16,7 +16,9 @@ export interface messageProps {
 
 export interface sidebarProps {
     className: string,
-    setClickSide : React.Dispatch<React.SetStateAction<number>>
+    setClickSide : React.Dispatch<React.SetStateAction<number>>,
+    value : string,
+    setValue : React.Dispatch<React.SetStateAction<string>>,
   }
 
 export interface history{
