@@ -144,17 +144,13 @@ func addRespon(c echo.Context) error {
 }
 
 func showHistori(c echo.Context) error {
-	var histori HistoriReq
-	err := c.Bind(&histori)
-	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, "error 1")
-	}
+	HistoriID := c.QueryParam("Id_histori")
 	db, err := connect()
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, "error 1")
 	}
 	defer db.Close()
-	rows, err := db.Query("select h.ID_histori, r.Jenis, r.Isi from histori as h, respon as r where h.ID_histori=r.ID_histori AND h.Nama=?", histori.Nama)
+	rows, err := db.Query("select h.ID_histori, r.Jenis, r.Isi from histori as h, respon as r where h.ID_histori=r.ID_histori AND h.ID_histori=?", HistoriID)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, "error 2")
 	}
@@ -168,8 +164,20 @@ func showHistori(c echo.Context) error {
 		}
 		isi = append(isi, respon)
 	}
+	nama, err := db.Query("select Nama from histori where ID_histori=?", HistoriID)
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, "error 2")
+	}
+	defer nama.Close()
+	var namaHistori string
+	for nama.Next() {
+		err := nama.Scan(&namaHistori)
+		if err != nil {
+			return c.JSON(http.StatusUnprocessableEntity, "error 3")
+		}
+	}
 	historiReq := &Histori{
-		Nama: histori.Nama,
+		Nama: namaHistori,
 		Isi:  isi,
 	}
 	return c.JSON(http.StatusOK, historiReq)
@@ -330,7 +338,7 @@ func main() {
 	e.GET("find", findAnswer)
 	e.POST("quest", addQuestion)
 	e.POST("respon", addRespon)
-	e.GET("histori", showHistori)
+	e.GET("chat", showHistori)
 	e.POST("histori", addHistori)
 	e.DELETE("histori", deleteHistori)
 	e.Start(":1234")
