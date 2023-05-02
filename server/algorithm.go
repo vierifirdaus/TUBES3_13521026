@@ -1,3 +1,13 @@
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"sort"
+	"strings"
+)
+
 // mencari pertanyaan paling mirip menggunakan algoritma KMP
 func findMostSimilarKMP(question string, questions []string) (string, bool) {
 	var mostSimilarQuestion string
@@ -30,7 +40,7 @@ func findAnswerKMP(question string, questions []string, answers []string) string
 	} else {
 		var mostSimilarQuestions []string
 		var similarities []float64
-		for i, q := range questions {
+		for _, q := range questions {
 			similarity := float64(KMP(question, q)) / float64(len(q))
 			if similarity >= 0.9 {
 				mostSimilarQuestions = append(mostSimilarQuestions, q)
@@ -127,7 +137,7 @@ func findAnswerBM(question string, questions []string, answers []string) (string
 		// jika tidak ditemukan pertanyaan yang cocok, cari tiga pertanyaan yang paling mirip
 		var topQuestions []string
 		var topSimilarities []float64
-		for i, q := range questions {
+		for _, q := range questions {
 			similarity := float64(BM(question, q)) / float64(len(q))
 			if similarity > 0.9 {
 				if len(topQuestions) < 3 {
@@ -207,4 +217,31 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+var questions = []string{
+	"Apa saya bisa dapat IP 4?",
+	"Kapan chatbot ini dibuat?",
+	"Siapa yang membuat chatbot ini?",
+}
+
+var answers = []string{
+	"ChatGPT adalah program chatbot berbasis bahasa alami yang dibangun dengan menggunakan teknologi mesin pembelajaran.",
+	"Chatbot ini dibuat pada tahun 2023.",
+	"Vieri, Fajar, dan Copa membuat chatbot ini.",
+}
+
+func main() {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("Selamat datang di ChatGPT!")
+	for {
+		fmt.Print("Anda: ")
+		input, _ := reader.ReadString('\n')
+		input = strings.TrimSpace(input)
+		if input == "" {
+			continue
+		}
+		answer := findAnswerKMP(input, questions, answers)
+		fmt.Println("ChatGPT:", answer)
+	}
 }
