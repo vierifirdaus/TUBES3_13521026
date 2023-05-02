@@ -28,6 +28,10 @@ type (
 		Nama string   `json:"nama"`
 		Isi  []Respon `json:"isi"`
 	}
+	UpdateHistori struct {
+		NewName    string `json:"new_name"`
+		ID_histori int    `json:"ID_histori"`
+	}
 	Respon struct {
 		ID_histori int    `json:"id_histori"`
 		Jenis      string `json:"jenis"`
@@ -83,6 +87,10 @@ func findAnswer(c echo.Context) error {
 	}
 
 	quest.Pertanyaan = strings.ToLower(quest.Pertanyaan)
+
+	// if deleteQuestionCheck(quest.Pertanyaan) {
+	// }
+	// elif()
 
 	db, err := connect()
 	if err != nil {
@@ -267,8 +275,27 @@ func addHistori(c echo.Context) error {
 }
 
 func deleteHistori(c echo.Context) error {
-	var histori HistoriReq
-	err := c.Bind(&histori)
+	id_histori := c.QueryParam("Id_histori")
+	db, err := connect()
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, "error 1")
+	}
+	_, err = db.Exec("DELETE FROM respon WHERE ID_histori=?", id_histori)
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, "error 3")
+	}
+
+	_, err = db.Exec("DELETE FROM histori WHERE ID_histori=?", id_histori)
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, "error 3")
+	}
+
+	return c.JSON(http.StatusCreated, "successs")
+}
+
+func updateHistoriName(c echo.Context) error {
+	var historiChange UpdateHistori
+	err := c.Bind(&historiChange)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, "error 1")
 	}
@@ -279,29 +306,12 @@ func deleteHistori(c echo.Context) error {
 	}
 	defer db.Close()
 
-	id, err := db.Query("select ID_histori from histori where Nama=?", histori.Nama)
+	update, err := db.Exec("UPDATE Histori SET Nama = ? WHERE ID_histori = ?", historiChange.NewName, historiChange.ID_histori)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, "error 2")
 	}
-	defer id.Close()
-	var id_histori int
-	for id.Next() {
-		err := id.Scan(&id_histori)
-		if err != nil {
-			return c.JSON(http.StatusUnprocessableEntity, "error 3")
-		}
-	}
-	_, err = db.Exec("DELETE FROM respon WHERE ID_histori=?", id_histori)
-	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, "error 3")
-	}
-
-	_, err = db.Exec("DELETE FROM histori WHERE Nama=?", histori.Nama)
-	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, "error 3")
-	}
-
-	return c.JSON(http.StatusCreated, histori)
+	update.RowsAffected()
+	return c.JSON(http.StatusOK, "success")
 }
 
 func main() {
@@ -323,5 +333,6 @@ func main() {
 	e.GET("chat", getChatFromId)
 	e.DELETE("histori", deleteHistori)
 	e.GET("allhistori", getAllHistori)
+	e.PUT("histori", updateHistoriName)
 	e.Logger.Fatal(e.Start(":1234"))
 }
