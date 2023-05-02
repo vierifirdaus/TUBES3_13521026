@@ -114,7 +114,7 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
         refBottom.current?.scrollIntoView({ behavior: 'smooth' });
       }, [chatLog]);
 
-    const handleInput = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleInput = (e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLTextAreaElement>) => {
         e.preventDefault()
         console.log("click")
         if( inputValue.trim() === ''){

@@ -25,16 +25,16 @@ const Sidebar: React.FC<sidebarProps> = ({ className,setClickSide,value,setValue
     setHistories(history.filter((history) => history.id !== i));
   }
   useEffect(() => {
-    // setIsLoading(true);
-    // axios.get('http://localhost:1234/allhistori').then((res) => {
-    //   setIsLoading(false);
-    //   setHistories(res.data);
-    // }).catch((err) => {
-    //     console.log(err);
-    //     setIsLoading(false);
-    // })
-    const histories: history[] = [{id:1,nama:"siapaaaaaaaa kamu??"},{id:2,nama:"siapaaaaaaaa kamu??"},{id:3,nama:"siapaaaaaaaa kamu??"},{id:4,nama:"siapaaaaaaaa kamu??"},{id:5,nama:"siapaaaaaaaa kamu??"},{id:6,nama:"siapaaaaaaaa kamu??"},{id:7,nama:"siapaaaaaaaa kamu??"},{id:8,nama:"siapaaaaaaaa kamu??"},{id:9,nama:"siapaaaaaaaa kamu??"},{id:10,nama:"siapaaaaaaaa kamu??"},{id:11,nama:"siapaaaaaaaa kamu??"},{id:12,nama:"siapaaaaaaaa kamu??"},{id:13,nama:"siapaaaaaaaa kamu??"},{id:14,nama:"siapaaaaaaaa kamu??"},{id:15,nama:"siapaaaaaaaa kamu??"},{id:16,nama:"siapaaaaaaaa kamu??"},{id:17,nama:"siapaaaaaaaa kamu??"},{id:18,nama:"siapaaaaaaaa kamu??"},{id:19,nama:"siapaaaaaaaa kamu??"},{id:20,nama:"siapaaaaaaaa kamu??"}]
-    setHistories(histories);
+    setIsLoading(true);
+    axios.get('http://localhost:1234/allhistori').then((res) => {
+      setIsLoading(false);
+      setHistories(res.data);
+    }).catch((err) => {
+        console.log(err);
+        setIsLoading(false);
+    })
+    // const histories: history[] = [{id:1,nama:"siapaaaaaaaa kamu??"},{id:2,nama:"siapaaaaaaaa kamu??"},{id:3,nama:"siapaaaaaaaa kamu??"},{id:4,nama:"siapaaaaaaaa kamu??"},{id:5,nama:"siapaaaaaaaa kamu??"},{id:6,nama:"siapaaaaaaaa kamu??"},{id:7,nama:"siapaaaaaaaa kamu??"},{id:8,nama:"siapaaaaaaaa kamu??"},{id:9,nama:"siapaaaaaaaa kamu??"},{id:10,nama:"siapaaaaaaaa kamu??"},{id:11,nama:"siapaaaaaaaa kamu??"},{id:12,nama:"siapaaaaaaaa kamu??"},{id:13,nama:"siapaaaaaaaa kamu??"},{id:14,nama:"siapaaaaaaaa kamu??"},{id:15,nama:"siapaaaaaaaa kamu??"},{id:16,nama:"siapaaaaaaaa kamu??"},{id:17,nama:"siapaaaaaaaa kamu??"},{id:18,nama:"siapaaaaaaaa kamu??"},{id:19,nama:"siapaaaaaaaa kamu??"},{id:20,nama:"siapaaaaaaaa kamu??"}]
+    // setHistories(histories);
     return () => {
       // cleanup
     }
