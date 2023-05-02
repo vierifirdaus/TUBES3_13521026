@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -212,13 +213,13 @@ var answers = []string{
 }
 
 func deleteQuestionCheck(question string) bool {
-	pattern := regexp.MustCompile(`^Hapus pertanyaan\s(.+)$`)
+	pattern := regexp.MustCompile(`^hapus pertanyaan\s(.+)$`)
 	return pattern.MatchString(question)
 }
 
 func parsingDeleteQuestion(question string) string {
 	if deleteQuestionCheck(question) {
-		pattern := regexp.MustCompile(`^Hapus pertanyaan\s(.+)$`)
+		pattern := regexp.MustCompile(`^hapus pertanyaan\s(.+)$`)
 		return pattern.FindStringSubmatch(question)[1]
 	} else {
 		return ""
@@ -226,17 +227,63 @@ func parsingDeleteQuestion(question string) string {
 }
 
 func updateQuestionCheck(question string) bool {
-	pattern := regexp.MustCompile(`Tambah pertanyaan ([^ ]+) dengan jawaban ([^ ]+)`)
+	pattern := regexp.MustCompile(`tambah pertanyaan ([^ ]+) dengan jawaban ([^ ]+)`)
 	return pattern.MatchString(question)
 }
 
-func parsingUpdateQuestion(question string) (string, string) {
+func parsingUpdateQuestion(question string) []string {
 	if updateQuestionCheck(question) {
-		pattern := regexp.MustCompile(`Tambah pertanyaan ([^ ]+) dengan jawaban ([^ ]+)`)
-		return pattern.FindStringSubmatch(question)[1], pattern.FindStringSubmatch(question)[2]
+		pattern := regexp.MustCompile(`tambah pertanyaan ([^ ]+) dengan jawaban ([^ ]+)`)
+		array := []string{pattern.FindStringSubmatch(question)[1], pattern.FindStringSubmatch(question)[2]}
+		return array
 	} else {
-		return "", ""
+		array := []string{"", ""}
+		return array
 	}
+}
+
+func dateCheck(date string) bool {
+	var pattern, _ = regexp.Compile(`(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\/\d{4}`)
+	return pattern.MatchString(date)
+}
+
+func parserDateCheck(date string) string {
+	if dateCheck(date) {
+		pattern, _ := regexp.Compile(`(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\/\d{4}`)
+		return pattern.FindStringSubmatch(date)[0]
+	} else {
+		return ""
+	}
+}
+
+func getDay(date string) string {
+	if dateCheck(date) == false {
+		return "Format tanggal salah"
+	}
+	days := []string{"Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"}
+	dateParts := strings.Split(date, "/")
+	day, _ := strconv.Atoi(dateParts[0])
+	month, _ := strconv.Atoi(dateParts[1])
+	year, _ := strconv.Atoi(dateParts[2])
+
+	var (
+		a, b, c, d, e, f, g int
+	)
+
+	if month < 3 {
+		year--
+		month += 12
+	}
+
+	a = year / 100
+	b = a / 4
+	c = 2 - a + b
+	d = 365*year/4 + 30*month/5 + day + c - 36525
+	e = d % 7
+	f = (e + 7) % 7
+	g = f % 7
+
+	return days[g]
 }
 
 // func main() {

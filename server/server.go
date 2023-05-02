@@ -88,9 +88,20 @@ func findAnswer(c echo.Context) error {
 
 	quest.Pertanyaan = strings.ToLower(quest.Pertanyaan)
 
-	// if deleteQuestionCheck(quest.Pertanyaan) {
-	// }
-	// elif()
+	if dateCheck(quest.Pertanyaan) {
+		return c.JSON(http.StatusOK, "Hari"+getDay(quest.Pertanyaan))
+	} else if updateQuestionCheck(quest.Pertanyaan) {
+		var question Pertanyaan
+		question.Jawaban = parsingUpdateQuestion(quest.Pertanyaan)[1]
+		question.Pertanyaan = parsingUpdateQuestion(quest.Pertanyaan)[0]
+		var status string
+		status = addQuestionReq(question)
+		if status == "success" {
+			return c.JSON(http.StatusOK, "Berhasil update pertanyaan")
+		} else {
+			return c.JSON(http.StatusOK, "Gagal update pertanyaan")
+		}
+	}
 
 	db, err := connect()
 	if err != nil {
@@ -162,6 +173,56 @@ func addQuestion(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, quest)
+}
+
+func addQuestionReq(quest Pertanyaan) string {
+	db, err := connect()
+	if err != nil {
+		return "err"
+	}
+	defer db.Close()
+
+	rows, err := db.Query("select Pertanyaan,Jawaban from pertanyaan where Pertanyaan=? ", quest.Pertanyaan)
+	if err != nil {
+		fmt.Println(err.Error())
+		return "err"
+	}
+	defer rows.Close()
+
+	var result []Pertanyaan
+	fmt.Println(rows)
+	if rows.Next() {
+		var each = Pertanyaan{}
+		var err = rows.Scan(&each.Pertanyaan, &each.Jawaban)
+
+		if err != nil {
+			fmt.Println(err.Error())
+			return "err"
+		}
+
+		result = append(result, each)
+	}
+	fmt.Println(result)
+	if err = rows.Err(); err != nil {
+		return "err"
+	}
+
+	if result != nil {
+		update, err := db.Exec("UPDATE Pertanyaan SET Jawaban = ? WHERE Pertanyaan = ?", quest.Jawaban, quest.Pertanyaan)
+		if err != nil {
+			return "err"
+		}
+		defer rows.Close()
+		update.RowsAffected()
+		return "success"
+	}
+
+	_, err = db.Exec("INSERT INTO pertanyaan (Pertanyaan,Jawaban) VALUES (?,?)", quest.Pertanyaan, quest.Jawaban)
+	if err != nil {
+		return "err"
+	}
+
+	return "success"
 }
 
 func addRespon(c echo.Context) error {
