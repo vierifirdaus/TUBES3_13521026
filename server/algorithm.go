@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -208,6 +209,34 @@ var answers = []string{
 	"Tidak ada yang tidak mungkin",
 	"Chatbot ini dibuat pada tahun 2023.",
 	"Vieri, Fajar, dan Copa membuat chatbot ini.",
+}
+
+func deleteQuestionCheck(question string) bool {
+	pattern := regexp.MustCompile(`^Hapus pertanyaan\s(.+)$`)
+	return pattern.MatchString(question)
+}
+
+func parsingDeleteQuestion(question string) string {
+	if deleteQuestionCheck(question) {
+		pattern := regexp.MustCompile(`^Hapus pertanyaan\s(.+)$`)
+		return pattern.FindStringSubmatch(question)[1]
+	} else {
+		return ""
+	}
+}
+
+func updateQuestionCheck(question string) bool {
+	pattern := regexp.MustCompile(`Tambah pertanyaan ([^ ]+) dengan jawaban ([^ ]+)`)
+	return pattern.MatchString(question)
+}
+
+func parsingUpdateQuestion(question string) (string, string) {
+	if updateQuestionCheck(question) {
+		pattern := regexp.MustCompile(`Tambah pertanyaan ([^ ]+) dengan jawaban ([^ ]+)`)
+		return pattern.FindStringSubmatch(question)[1], pattern.FindStringSubmatch(question)[2]
+	} else {
+		return "", ""
+	}
 }
 
 // func main() {
