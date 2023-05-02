@@ -1,1 +1,0 @@
-siapa yang menciptakan Go?
