@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -45,7 +44,7 @@ type (
 )
 
 func connect() (*sql.DB, error) {
-	db, err := sql.Open("mysql", os.Getenv("DATABASE_URL")+"/tubes3")
+	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)"+"/tubes3")
 	if err != nil {
 		fmt.Println("error")
 	}
@@ -177,6 +176,8 @@ func addRespon(c echo.Context) error {
 	return c.JSON(http.StatusCreated, respon)
 }
 
+
+
 func getChatFromId(c echo.Context) error {
 	var histori HistoriReqId
 	err := c.Bind(&histori)
@@ -267,41 +268,22 @@ func addHistori(c echo.Context) error {
 }
 
 func deleteHistori(c echo.Context) error {
-	var histori HistoriReq
-	err := c.Bind(&histori)
-	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, "error 1")
-	}
-
+	id_histori := c.QueryParam("Id_histori")
 	db, err := connect()
 	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, "error 2")
-	}
-	defer db.Close()
-
-	id, err := db.Query("select ID_histori from histori where Nama=?", histori.Nama)
-	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, "error 2")
-	}
-	defer id.Close()
-	var id_histori int
-	for id.Next() {
-		err := id.Scan(&id_histori)
-		if err != nil {
-			return c.JSON(http.StatusUnprocessableEntity, "error 3")
-		}
+		return c.JSON(http.StatusUnprocessableEntity, "error 1")
 	}
 	_, err = db.Exec("DELETE FROM respon WHERE ID_histori=?", id_histori)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, "error 3")
 	}
 
-	_, err = db.Exec("DELETE FROM histori WHERE Nama=?", histori.Nama)
+	_, err = db.Exec("DELETE FROM histori WHERE ID_histori=?", id_histori)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, "error 3")
 	}
 
-	return c.JSON(http.StatusCreated, histori)
+	return c.JSON(http.StatusCreated, "successs")
 }
 
 func main() {

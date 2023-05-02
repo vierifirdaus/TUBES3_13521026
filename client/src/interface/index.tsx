@@ -8,9 +8,10 @@ export interface message {
 export interface chatProps {
     className: string;
     clickSide : number;
-    history: history[];
     setHistories: React.Dispatch<React.SetStateAction<history[]>>;
     setClicked: React.Dispatch<React.SetStateAction<number>>;
+    count: number;
+    setCount: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export interface messageProps {
@@ -25,7 +26,8 @@ export interface sidebarProps {
     history: history[],
     setHistories: React.Dispatch<React.SetStateAction<history[]>>,
     clicked: number,
-    setClicked: React.Dispatch<React.SetStateAction<number>>
+    setClicked: React.Dispatch<React.SetStateAction<number>>,
+    setCount: React.Dispatch<React.SetStateAction<number>>;
   }
 
 export interface history{
