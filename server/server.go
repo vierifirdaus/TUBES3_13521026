@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -44,7 +45,7 @@ type (
 )
 
 func connect() (*sql.DB, error) {
-	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)"+"/tubes3")
+	db, err := sql.Open("mysql", os.Getenv("DATABASE_URL")+"/tubes3")
 	if err != nil {
 		fmt.Println("error")
 	}
@@ -114,25 +115,21 @@ func addQuestion(c echo.Context) error {
 
 	rows, err := db.Query("select Pertanyaan,Jawaban from pertanyaan where Pertanyaan=? ", quest.Pertanyaan)
 	if err != nil {
-		fmt.Println(err.Error())
 		return c.JSON(http.StatusUnprocessableEntity, "error 2")
 	}
 	defer rows.Close()
 
 	var result []Pertanyaan
-	fmt.Println(rows)
 	if rows.Next() {
 		var each = Pertanyaan{}
 		var err = rows.Scan(&each.Pertanyaan, &each.Jawaban)
 
 		if err != nil {
-			fmt.Println(err.Error())
 			return c.JSON(http.StatusUnprocessableEntity, "error 3")
 		}
 
 		result = append(result, each)
 	}
-	fmt.Println(result)
 	if err = rows.Err(); err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, "error 3")
 	}
@@ -211,6 +208,8 @@ func showHistori(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, "error 1")
 	}
 	defer db.Close()
+	fmt.Println(HistoriID)
+	// HistoriID := "1"
 	rows, err := db.Query("select h.ID_histori, r.Jenis, r.Isi from histori as h, respon as r where h.ID_histori=r.ID_histori AND h.ID_histori=?", HistoriID)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, "error 2")
@@ -225,16 +224,17 @@ func showHistori(c echo.Context) error {
 		}
 		isi = append(isi, respon)
 	}
+	fmt.Println(isi)
 	nama, err := db.Query("select Nama from histori where ID_histori=?", HistoriID)
 	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, "error 2")
+		return c.JSON(http.StatusUnprocessableEntity, "error 4")
 	}
 	defer nama.Close()
 	var namaHistori string
 	for nama.Next() {
 		err := nama.Scan(&namaHistori)
 		if err != nil {
-			return c.JSON(http.StatusUnprocessableEntity, "error 3")
+			return c.JSON(http.StatusUnprocessableEntity, "error 5")
 		}
 	}
 	historiReq := &Histori{
@@ -392,7 +392,6 @@ func min(a, b int) int {
 	}
 	return b
 }
-
 func main() {
 	e := echo.New()
 	// Middleware
@@ -409,7 +408,7 @@ func main() {
 	e.POST("respon", addRespon)
 	e.GET("chat", showHistori)
 	e.POST("histori", addHistori)
-	e.GET("chat", getChatFromId)
+	e.GET("chatId", getChatFromId)
 	e.DELETE("histori", deleteHistori)
 	e.GET("allhistori", getAllHistori)
 	e.Logger.Fatal(e.Start(":1234"))
