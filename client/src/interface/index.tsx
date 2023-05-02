@@ -43,5 +43,5 @@ export interface buttonProps{
 export interface sendMessageProps{
     inputValue: string,
     setInputValue: React.Dispatch<React.SetStateAction<string>>,
-    handleInput: (e: React.FormEvent<HTMLFormElement>) => void
+    handleInput: (e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLTextAreaElement>) => void
 }
