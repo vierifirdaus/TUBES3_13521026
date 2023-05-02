@@ -1,18 +1,19 @@
 import React,{useState,useEffect,useRef} from 'react'
 import { useToast } from '@chakra-ui/react'
 import Message from './message'
-import SendMessage from './sendmessage'
+import SendMessage from './sendMessage'
 import { message, chatProps } from '../interface'
 import axios from 'axios'
 import TypingAnimation from './typingMessage'
 
 
-const Chat : React.FC<chatProps> = ({className,clickSide}) => {
+const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked,history}) => {
     const toast = useToast()
     const refBottom = useRef<HTMLDivElement>(null)
     const [inputValue, setInputValue] = useState<string>('')
     const [chatLog, setChatLog] = useState<message[]>([])
     const [isLoading, setIsLoading] = useState<boolean>(false)
+    const [count,setCount] = useState<number>(0)
 
     useEffect(() => {
         if (clickSide !== -1) {
@@ -116,7 +117,7 @@ const Chat : React.FC<chatProps> = ({className,clickSide}) => {
     const handleInput = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         console.log("click")
-        if(inputValue === ''){
+        if( inputValue.trim() === ''){
             toast({
                 title: 'Error Sending Message',
                 description: "Message can't be empty",
@@ -126,29 +127,35 @@ const Chat : React.FC<chatProps> = ({className,clickSide}) => {
               })
             return
         }
-        setChatLog([...chatLog, {id: chatLog.length + 1, id_histori: 1, jenis: "input", isi: inputValue}])
+
+        if(count == 0 && clickSide == -1){
+            setHistories([{id: 5, nama: inputValue}, ...history])
+            setClicked(5)
+            setCount(count+1)
+        }
         setInputValue('')
+        setChatLog([...chatLog, {id: chatLog.length + 1, id_histori: 1, jenis: "input", isi: inputValue}])
         getBotResponse()
     }
-    
     const getBotResponse = async () => {
         setIsLoading(true)
         const response = await setTimeout(() => {
             setChatLog(prevChatLog => [...prevChatLog, {id: prevChatLog.length + 1, id_histori: 1, jenis: "output", isi: "tes response"}])
             setIsLoading(false)
-        }, 8000)
+        }, 1000)
     }
 
   return (
     <div className={className}>
-        <div className='min-h-full'>
+        <div className='max-h-screen overflow-y-auto'>
         {chatLog.map((message) => (
             <Message key={message.id} message={message}/>
             ))
         }
         {isLoading && <TypingAnimation/>}
-        <span ref={refBottom}></span>
+        <div ref={refBottom}></div>
         </div>
+        <span className='flex-auto'></span>
         <SendMessage inputValue={inputValue} setInputValue={setInputValue} handleInput={handleInput}/>
     </div>
   )
