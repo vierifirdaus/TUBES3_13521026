@@ -227,13 +227,13 @@ func parsingDeleteQuestion(question string) string {
 }
 
 func updateQuestionCheck(question string) bool {
-	pattern := regexp.MustCompile(`tambah pertanyaan ([^ ]+) dengan jawaban ([^ ]+)`)
+	pattern := regexp.MustCompile(`^tambah pertanyaan\s(.+)\sdengan jawaban\s(.+)$`)
 	return pattern.MatchString(question)
 }
 
 func parsingUpdateQuestion(question string) []string {
 	if updateQuestionCheck(question) {
-		pattern := regexp.MustCompile(`tambah pertanyaan ([^ ]+) dengan jawaban ([^ ]+)`)
+		pattern := regexp.MustCompile(`^tambah pertanyaan\s(.+)\sdengan jawaban\s(.+)$`)
 		array := []string{pattern.FindStringSubmatch(question)[1], pattern.FindStringSubmatch(question)[2]}
 		return array
 	} else {
@@ -284,6 +284,24 @@ func getDay(date string) string {
 	// Menentukan nama hari berdasarkan nilai h
 	var daysOfWeek = []string{"Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"}
 	return daysOfWeek[h]
+}
+
+func calculatorCheck(calculator string) bool {
+	pattern := regexp.MustCompile(`^(?:\d+|\(\s*(?:(?:\d+|[+\-*/^()])\s*)+\))(?:\s*[+\-*/^]\s*(?:\d+|\(\s*(?:(?:\d+|[+\-*/^()])\s*)+\)))*$`)
+	return pattern.MatchString(calculator)
+}
+
+func parsingCalculator(calculator string) string {
+	if calculatorCheck(calculator) {
+		pattern := regexp.MustCompile(`^(?:\d+|\(\s*(?:(?:\d+|[+\-*/^()])\s*)+\))(?:\s*[+\-*/^]\s*(?:\d+|\(\s*(?:(?:\d+|[+\-*/^()])\s*)+\)))*$`)
+		return pattern.FindStringSubmatch(calculator)[0]
+	} else {
+		return ""
+	}
+}
+
+func calculator(calculator string) string {
+	return calculator
 }
 
 // func main() {

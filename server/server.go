@@ -52,7 +52,7 @@ type (
 )
 
 func connect() (*sql.DB, error) {
-	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)"+"/tubes3")
+	db, err := sql.Open("mysql", "root:qwerty@tcp(127.0.0.1:3306)"+"/tubes3")
 	if err != nil {
 		fmt.Println("error")
 	}
@@ -107,6 +107,7 @@ func findAnswer(c echo.Context) error {
 
 	quest.Pertanyaan = strings.ToLower(quest.Pertanyaan)
 
+	//aman
 	if dateCheck(quest.Pertanyaan) {
 		var statusRespon string
 		var respon Respon
@@ -121,53 +122,56 @@ func findAnswer(c echo.Context) error {
 		}
 
 		return c.JSON(http.StatusOK, "Hari dari tanggal "+parsingDate(quest.Pertanyaan)+" adalah "+getDay(parsingDate(quest.Pertanyaan)))
-	} else if updateQuestionCheck(quest.Pertanyaan) {
+	} else if updateQuestionCheck(quest.Pertanyaan) { // aman
 		var question Pertanyaan
 		question.Jawaban = parsingUpdateQuestion(quest.Pertanyaan)[1]
 		question.Pertanyaan = parsingUpdateQuestion(quest.Pertanyaan)[0]
 		var status string
-		status = addQuestionReq(question)
 
-		var statusRespon string
 		var respon Respon
 		respon.ID_histori = questHistori.ID_histori
 		respon.Jenis = "output"
 
-		if status == "success" {
-			if questionCheck(question.Pertanyaan) {
-				respon.Isi = "Pertanyaan " + question.Pertanyaan + " sudah ada! Jawaban diupdate ke " + question.Jawaban
-			} else {
-				respon.Isi = "Pertanyaan " + question.Pertanyaan + "telah ditambahkan"
-			}
+		if questionCheck(question.Pertanyaan) {
+			status = addQuestionReq(question)
 			statusRespon = addResponReq(respon)
-
-			if statusRespon == "success" {
+			respon.Isi = "Pertanyaan " + question.Pertanyaan + " sudah ada! Jawaban diupdate ke " + question.Jawaban
+			if status == "success" {
 				fmt.Println("Berhasil add respon")
 			} else {
 				fmt.Println("Gagal add respon")
 			}
-
-			return c.JSON(http.StatusOK, "Berhasil update pertanyaan")
+			return c.JSON(http.StatusOK, "Pertanyaan "+question.Pertanyaan+" sudah ada! Jawaban diupdate ke "+question.Jawaban)
 		} else {
-			return c.JSON(http.StatusOK, "Gagal update pertanyaan")
+			status = addQuestionReq(question)
+			statusRespon = addResponReq(respon)
+			respon.Isi = "Pertanyaan " + question.Pertanyaan + "telah ditambahkan"
+			if status == "success" {
+				fmt.Println("Berhasil add respon")
+			} else {
+				fmt.Println("Gagal add respon")
+			}
+			return c.JSON(http.StatusOK, "Pertanyaan "+question.Pertanyaan+"telah ditambahkan")
 		}
 	} else if deleteQuestionCheck(quest.Pertanyaan) {
 		var question string
 		question = parsingDeleteQuestion(quest.Pertanyaan)
-		var status string
-		status = deleteQuestionReq(question)
+		var statusDelete string
+
 		if questionCheck(question) {
+			statusDelete = deleteQuestionReq(question)
 			var statusRespon string
 			var respon Respon
 			respon.ID_histori = questHistori.ID_histori
 			respon.Jenis = "output"
 			respon.Isi = "Pertanyaan " + question + " telah dihapus"
 			statusRespon = addResponReq(respon)
-			if statusRespon == "success" {
+			if statusRespon == "success" && statusDelete == "success" {
 				fmt.Println("Berhasil add respon")
 			} else {
 				fmt.Println("Gagal add respon")
 			}
+			return c.JSON(http.StatusOK, "Pertanyaan "+question+" telah dihapus")
 		} else {
 			var statusRespon string
 			var respon Respon
@@ -180,12 +184,21 @@ func findAnswer(c echo.Context) error {
 			} else {
 				fmt.Println("Gagal add respon")
 			}
+			return c.JSON(http.StatusOK, "Tidak ada pertanyaan "+question+" dalam database")
 		}
-		if status == "success" {
-			return c.JSON(http.StatusOK, "Berhasil hapus pertanyaan")
+	} else if calculatorCheck(quest.Pertanyaan) {
+		var statusRespon string
+		var respon Respon
+		respon.ID_histori = questHistori.ID_histori
+		respon.Jenis = "output"
+		respon.Isi = "Hasil dari " + quest.Pertanyaan + " adalah " + calculator(quest.Pertanyaan)
+		statusRespon = addResponReq(respon)
+		if statusRespon == "success" {
+			fmt.Println("Berhasil add respon")
 		} else {
-			return c.JSON(http.StatusOK, "Gagal hapus pertanyaan")
+			fmt.Println("Gagal add respon")
 		}
+		return c.JSON(http.StatusOK, "Hasil dari "+quest.Pertanyaan+" adalah "+calculator(quest.Pertanyaan))
 	} else {
 		db, err := connect()
 		if err != nil {
