@@ -5,7 +5,7 @@ import {buttonProps} from '../interface'
 import axios from 'axios'
 
 
-const SideButton :React.FC<buttonProps> = ({history,clicked,handleClick,handleDelete}) => {
+const SideButton :React.FC<buttonProps> = ({history,clicked,handleClick,handleDelete,setHistories}) => {
   const [editing, setEditing] = useState(false);
   const [editedName, setEditedName] = useState<string>('')
   const [name, setName] = useState('');
@@ -35,20 +35,22 @@ const SideButton :React.FC<buttonProps> = ({history,clicked,handleClick,handleDe
     {
       new_name: editedName,  
       id_histori: history.id
-    })
-    .then((res) => {
+    }).then((res) => {
       console.log(res.data);
-      axios.get('http://localhost:1234/allhistori').then((res) => { 
-        setEditing(false);
-    })
-    .catch((err) => {
-      console.log(err);
-    })
-    })
-    .catch((err) => {
+      setName(editedName);
+      setEditing(false);
+      axios.get('http://localhost:1234/allhistori').then((res) => {
+        setHistories(res.data);
+      }
+      ).catch((err) => {
+        console.log(err);
+      }
+      )
+    }).catch((err) => {
       console.log(err);
     })
   };
+      
 
   const handleCancelButtonClick = () => {
     setEditing(false);

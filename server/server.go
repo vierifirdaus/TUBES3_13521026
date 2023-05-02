@@ -52,7 +52,7 @@ type (
 )
 
 func connect() (*sql.DB, error) {
-	db, err := sql.Open("mysql", "root:qwerty@tcp(127.0.0.1:3306)"+"/tubes3")
+	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)"+"/tubes3")
 	if err != nil {
 		fmt.Println("error")
 	}
@@ -532,7 +532,7 @@ func main() {
 		AllowOrigins: []string{"http://localhost:8080"},
 		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 	}))
-	e.GET("find", findAnswer)
+	e.POST("find", findAnswer)
 	e.POST("quest", addQuestion)
 	e.POST("respon", addRespon)
 	e.GET("histori", showHistori)

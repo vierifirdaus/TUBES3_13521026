@@ -2,107 +2,48 @@ import React,{useState,useEffect,useRef} from 'react'
 import { useToast } from '@chakra-ui/react'
 import Message from './message'
 import SendMessage from './sendMessage'
-import { message, chatProps } from '../interface'
+import { chatProps } from '../interface'
 import axios from 'axios'
 import TypingAnimation from './typingMessage'
 
 
-const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked,count,setCount}) => {
+const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked,count,setCount,setChatLog,chatLog,refHistori}) => {
     const toast = useToast()
     const refBottom = useRef<HTMLDivElement>(null)
     const [inputValue, setInputValue] = useState<string>('')
-    const [chatLog, setChatLog] = useState<message[]>([])
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [idHistori, setIdHistori] = useState<number>(-1)
 
     useEffect(() => {
         if (clickSide !== -1) {
-            axios.get('http://localhost:1234/chat',
+            setIdHistori(clickSide)
+            axios.get('http://localhost:1234/histori',
                 {
                     params: {
-                        id_histori: clickSide
+                        Id_histori: clickSide
                         },
                     
                 })
                 .then((res) => {
                     console.log("data")
                     console.log(res.data)
-                    setIdHistori(clickSide)
+                    if(res.data.isi == null){
+                        setChatLog([])
+                    }else{
+                        setChatLog(res.data.isi)
+                    }
                 })
                 .catch((err) => {
                     console.log(err)
                 })
+        }else{
+            setChatLog([])
         }
         console.log(clickSide)
-        const messages:message[] = [
-            // {
-            //   id : 2,
-            //   id_histori : 1,
-            //   Jenis : "output",
-            //   Isi : "saya bot"
-            // },
-            // {
-            //   id : 3,
-            //   id_histori : 1,
-            //   Jenis : "output",
-            //   Isi : "saya bot"
-            // },
-            // {
-            //   id : 4,
-            //   id_histori : 1,
-            //   Jenis : "output",
-            //   Isi : "saya bot"
-            // },
-            // {
-            //   id : 5,
-            //   id_histori : 1,
-            //   Jenis : "output",
-            //   Isi : "saya bot"
-            // },
-            // {
-            //   id : 6,
-            //   id_histori : 1,
-            //   Jenis : "output",
-            //   Isi : "saya bot"
-            // },
-            // {
-            //   id : 7,
-            //   id_histori : 1,
-            //   Jenis : "output",
-            //   Isi : "saya bot"
-            // },
-            // {
-            //   id : 8,
-            //   id_histori : 1,
-            //   Jenis : "output",
-            //   Isi : "saya bot"
-            // },
-            // {
-            //   id : 9,
-            //   id_histori : 1,
-            //   Jenis : "output",
-            //   Isi : "saya bot"
-            // },
-            // {
-            //   id : 10,
-            //   id_histori : 1,
-            //   Jenis : "output",
-            //   Isi : "saya bot"
-            // },
-            // {
-            //   id : 11,
-            //   id_histori : 1,
-            //   Jenis : "output",
-            //   Isi : "In the example above, the sendIcon.svg image is imported and passed as a component to the icon prop of the IconButton component, making it the icon for the button. Please make sure that the sendIcon.svg image file is located in the correct path and that it's properly imported into your component. You can adjust the styling and positioning of the IconButton component and the Input component using the respective Chakra UI props and Tailwind CSS classes to achieve the desired look for your send message input component."
-            // },
-            // {
-            //   id : 12,
-            //   id_histori : 1,
-            //   Jenis : "output",
-            //   Isi : "saya bot"
-            // }
-        ]
-        setChatLog(messages)
+        refBottom.current?.scrollIntoView({ behavior: 'smooth' });
+        return () => {
+            setChatLog([])
+        }
     }, [clickSide])
 
     useEffect(() => {
@@ -124,16 +65,18 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
         }
         console.log(clickSide)
         console.log(count)
+        setInputValue('')
+        setChatLog([...chatLog, {id: chatLog.length + 1, id_histori: 1, jenis: "input", isi: inputValue}])
         if(count == 0 && clickSide == -1){
             const res = await updateHistory()
             //
+        }else{
+            getBotResponse(idHistori)
         }
-        setInputValue('')
-        setChatLog([...chatLog, {id: chatLog.length + 1, id_histori: 1, jenis: "input", isi: inputValue}])
-        getBotResponse()
     }
 
     const updateHistory =async () => {
+        const post = await
         axios.post('http://localhost:1234/histori',
                 {
                     nama: inputValue
@@ -146,9 +89,11 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
                         console.log("data")
                         console.log(res.data)
                         setHistories(res.data)
-                        setClicked(res.data[res.data.length-1].id)
                         setCount(count+1)
+                        setClicked(res.data[res.data.length-1].id)
                         setIdHistori(res.data[res.data.length-1].id)
+                        getBotResponse(res.data[res.data.length-1].id)
+                        refHistori.current?.scrollIntoView({ behavior: 'smooth' });
                     })
                     .catch((err) => {
                         console.log(err)
@@ -159,19 +104,28 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
                 })
     }
 
-    const getBotResponse = async () => {
+    const getBotResponse = async (id:number) => {
         setIsLoading(true)
-        const response = await setTimeout(() => {
-            setChatLog(prevChatLog => [...prevChatLog, {id: prevChatLog.length + 1, id_histori: 1, jenis: "output", isi: "tes response"}])
+        axios.post('http://localhost:1234/find',{
+            pertanyaan: inputValue,
+            id_histori: id
+        }).then((res) => {
+            console.log("data")
+            console.log(res.data)
+            setChatLog(prevdata => [...prevdata, {id: prevdata.length + 1, id_histori: 1, jenis: "output", isi: res.data}])
             setIsLoading(false)
-        }, 1000)
+        }
+        ).catch((err) => {
+            console.log(err)
+            setIsLoading(false)
+        })
     }
 
   return (
     <div className={className}>
         <div className='max-h-screen overflow-y-auto'>
-        {chatLog.map((message) => (
-            <Message key={message.id} message={message}/>
+        {chatLog.map((message,index) => (
+            <Message key={index} message={message}/>
             ))
         }
         {isLoading && <TypingAnimation/>}

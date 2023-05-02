@@ -12,6 +12,12 @@ export interface chatProps {
     setClicked: React.Dispatch<React.SetStateAction<number>>;
     count: number;
     setCount: React.Dispatch<React.SetStateAction<number>>;
+    clicked: number;
+    setClickSide: React.Dispatch<React.SetStateAction<number>>;
+    chatLog: message[];
+    setChatLog: React.Dispatch<React.SetStateAction<message[]>>;
+    refHistori:React.RefObject<HTMLDivElement>;
+
 }
 
 export interface messageProps {
@@ -27,7 +33,9 @@ export interface sidebarProps {
     setHistories: React.Dispatch<React.SetStateAction<history[]>>,
     clicked: number,
     setClicked: React.Dispatch<React.SetStateAction<number>>,
-    setCount: React.Dispatch<React.SetStateAction<number>>;
+    setCount: React.Dispatch<React.SetStateAction<number>>,
+    setChatLog: React.Dispatch<React.SetStateAction<message[]>>,
+    refHistori:React.RefObject<HTMLDivElement>;
   }
 
 export interface history{
@@ -40,6 +48,7 @@ export interface buttonProps{
     clicked: number,
     handleClick: (i:number) => void
     handleDelete: (i:number) => void
+    setHistories: React.Dispatch<React.SetStateAction<history[]>>;
 }
 
 export interface sendMessageProps{
