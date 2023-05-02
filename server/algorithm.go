@@ -130,50 +130,31 @@ func findMostSimilarBM(question string, questions []string) (string, bool) {
 	}
 }
 
-func findAnswerBM(question string, questions []string, answers []string) (string, bool) {
+func findAnswerBM(question string, questions []string, answers []string) string {
 	// cari pertanyaan yang paling mirip dengan pertanyaan yang diberikan
 	mostSimilarQuestion, found := findMostSimilarKMP(question, questions)
-	if !found {
-		// jika tidak ditemukan pertanyaan yang cocok, cari tiga pertanyaan yang paling mirip
-		var topQuestions []string
-		var topSimilarities []float64
-		for _, q := range questions {
-			similarity := float64(BM(question, q)) / float64(len(q))
-			if similarity > 0.9 {
-				if len(topQuestions) < 3 {
-					topQuestions = append(topQuestions, q)
-					topSimilarities = append(topSimilarities, similarity)
-				} else {
-					// ganti pertanyaan dengan kesamaan terendah di antara tiga pertanyaan
-					minIndex := 0
-					for j := 1; j < 3; j++ {
-						if topSimilarities[j] < topSimilarities[minIndex] {
-							minIndex = j
-						}
-					}
-					if similarity > topSimilarities[minIndex] {
-						topQuestions[minIndex] = q
-						topSimilarities[minIndex] = similarity
-					}
-				}
+	if found {
+		// cari jawaban yang cocok dengan pertanyaan yang ditemukan
+		for i, q := range questions {
+			if q == mostSimilarQuestion {
+				return answers[i]
 			}
 		}
-		if len(topQuestions) > 0 {
-			var options string
-			for i, q := range topQuestions {
-				options += fmt.Sprintf("%d) %s\n", i+1, q)
-			}
-			return fmt.Sprintf("Pertanyaan tidak ditemukan. Apakah yang Anda maksud adalah:\n%s", options), false
-		}
-		return "Maaf, saya tidak dapat menemukan jawaban untuk pertanyaan Anda.", false
 	}
-	// cari jawaban yang cocok dengan pertanyaan yang ditemukan
-	for i, q := range questions {
-		if q == mostSimilarQuestion {
-			return answers[i], true
+	// jika tidak ditemukan pertanyaan yang cocok, cari satu pertanyaan yang paling mirip
+	var topQuestion string
+	var topSimilarity float64
+	for _, q := range questions {
+		similarity := float64(BM(question, q)) / float64(len(q))
+		if similarity > topSimilarity {
+			topQuestion = q
+			topSimilarity = similarity
 		}
 	}
-	return "", false
+	if topSimilarity > 0.9 {
+		return fmt.Sprintf("Maaf, pertanyaan Anda tidak ditemukan. Apakah yang Anda maksud adalah:\n%s", topQuestion)
+	}
+	return "Maaf, saya tidak dapat menemukan jawaban untuk pertanyaan Anda."
 }
 
 // Boyer-Moore algorithm
@@ -220,13 +201,13 @@ func min(a, b int) int {
 }
 
 var questions = []string{
-	"Apa saya bisa dapat IP 4?",
-	"Kapan chatbot ini dibuat?",
-	"Siapa yang membuat chatbot ini?",
+	"Apa saya bisa dapat IP4?",
+	"Kapan chatgpt ini dibuat?",
+	"Siapa yang membuat chatgpt ini?",
 }
 
 var answers = []string{
-	"ChatGPT adalah program chatbot berbasis bahasa alami yang dibangun dengan menggunakan teknologi mesin pembelajaran.",
+	"Tidak ada yang tidak mungkin",
 	"Chatbot ini dibuat pada tahun 2023.",
 	"Vieri, Fajar, dan Copa membuat chatbot ini.",
 }
@@ -241,7 +222,7 @@ func main() {
 		if input == "" {
 			continue
 		}
-		answer := findAnswerKMP(input, questions, answers)
+		answer := findAnswerBM(input, questions, answers)
 		fmt.Println("ChatGPT:", answer)
 	}
 }
