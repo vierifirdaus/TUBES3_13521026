@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 )
@@ -212,17 +210,17 @@ var answers = []string{
 	"Vieri, Fajar, dan Copa membuat chatbot ini.",
 }
 
-func main() {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Selamat datang di ChatGPT!")
-	for {
-		fmt.Print("Anda: ")
-		input, _ := reader.ReadString('\n')
-		input = strings.TrimSpace(input)
-		if input == "" {
-			continue
-		}
-		answer := findAnswerBM(input, questions, answers)
-		fmt.Println("ChatGPT:", answer)
-	}
-}
+// func main() {
+// 	reader := bufio.NewReader(os.Stdin)
+// 	fmt.Println("Selamat datang di ChatGPT!")
+// 	for {
+// 		fmt.Print("Anda: ")
+// 		input, _ := reader.ReadString('\n')
+// 		input = strings.TrimSpace(input)
+// 		if input == "" {
+// 			continue
+// 		}
+// 		answer := findAnswerBM(input, questions, answers)
+// 		fmt.Println("ChatGPT:", answer)
+// 	}
+// }
