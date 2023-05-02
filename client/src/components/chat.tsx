@@ -7,13 +7,13 @@ import axios from 'axios'
 import TypingAnimation from './typingMessage'
 
 
-const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked,history}) => {
+const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked,count,setCount}) => {
     const toast = useToast()
     const refBottom = useRef<HTMLDivElement>(null)
     const [inputValue, setInputValue] = useState<string>('')
     const [chatLog, setChatLog] = useState<message[]>([])
     const [isLoading, setIsLoading] = useState<boolean>(false)
-    const [count,setCount] = useState<number>(0)
+    const [idHistori, setIdHistori] = useState<number>(-1)
 
     useEffect(() => {
         if (clickSide !== -1) {
@@ -27,6 +27,7 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
                 .then((res) => {
                     console.log("data")
                     console.log(res.data)
+                    setIdHistori(clickSide)
                 })
                 .catch((err) => {
                     console.log(err)
@@ -34,12 +35,6 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
         }
         console.log(clickSide)
         const messages:message[] = [
-            {
-              id : 1,
-              id_histori : 2,
-              jenis : "input",
-              isi : "siapa kamu??"
-           },
             // {
             //   id : 2,
             //   id_histori : 1,
@@ -114,7 +109,7 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
         refBottom.current?.scrollIntoView({ behavior: 'smooth' });
       }, [chatLog]);
 
-    const handleInput = (e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const handleInput = async (e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLTextAreaElement>) => {
         e.preventDefault()
         console.log("click")
         if( inputValue.trim() === ''){
@@ -127,16 +122,43 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
               })
             return
         }
-
+        console.log(clickSide)
+        console.log(count)
         if(count == 0 && clickSide == -1){
-            setHistories([{id: 5, nama: inputValue}, ...history])
-            setClicked(5)
-            setCount(count+1)
+            const res = await updateHistory()
+            //
         }
         setInputValue('')
         setChatLog([...chatLog, {id: chatLog.length + 1, id_histori: 1, jenis: "input", isi: inputValue}])
         getBotResponse()
     }
+
+    const updateHistory =async () => {
+        axios.post('http://localhost:1234/histori',
+                {
+                    nama: inputValue
+                })
+                .then((res) => {
+                    console.log("data")
+                    console.log(res.data)
+                    axios.get('http://localhost:1234/allhistori')
+                    .then((res) => {
+                        console.log("data")
+                        console.log(res.data)
+                        setHistories(res.data)
+                        setClicked(res.data[res.data.length-1].id)
+                        setCount(count+1)
+                        setIdHistori(res.data[res.data.length-1].id)
+                    })
+                    .catch((err) => {
+                        console.log(err)
+                    })
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
+    }
+
     const getBotResponse = async () => {
         setIsLoading(true)
         const response = await setTimeout(() => {

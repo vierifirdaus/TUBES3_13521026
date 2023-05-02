@@ -2,6 +2,7 @@ import React,{useEffect, useState} from 'react'
 import { Button,ButtonGroup,IconButton,Input,Box } from '@chakra-ui/react'
 import { EditIcon, DeleteIcon, ChatIcon,CheckIcon,CloseIcon } from '@chakra-ui/icons'
 import {buttonProps} from '../interface'
+import axios from 'axios'
 
 
 const SideButton :React.FC<buttonProps> = ({history,clicked,handleClick,handleDelete}) => {
@@ -30,8 +31,23 @@ const SideButton :React.FC<buttonProps> = ({history,clicked,handleClick,handleDe
     // // After save, set editing state to false to hide the text field
     // setName(history.nama);
     // console.log('history.nama changed to: ', history.nama)
-    setName(editedName)
-    setEditing(false);
+    axios.put('http://localhost:1234/histori',
+    {
+      new_name: editedName,  
+      id_histori: history.id
+    })
+    .then((res) => {
+      console.log(res.data);
+      axios.get('http://localhost:1234/allhistori').then((res) => { 
+        setEditing(false);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+    })
+    .catch((err) => {
+      console.log(err);
+    })
   };
 
   const handleCancelButtonClick = () => {

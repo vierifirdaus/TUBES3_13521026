@@ -1,4 +1,4 @@
-import React,{useState,useEffect} from 'react';
+import React,{useState,useEffect,useRef} from 'react';
 import { 
     Button,
     Radio, 
@@ -13,7 +13,8 @@ import SideButton from './sideButton';
 import { history, sidebarProps } from '../interface';
 import axios from 'axios';
 
-const Sidebar: React.FC<sidebarProps> = ({ className,setClickSide,value,setValue,history,setHistories,setClicked,clicked}) => {
+const Sidebar: React.FC<sidebarProps> = ({ className,setClickSide,value,setValue,history,setHistories,setClicked,clicked,setCount}) => {
+  const refHistori = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const handleClick = (i:number) => {
     setClicked(i);
@@ -22,7 +23,29 @@ const Sidebar: React.FC<sidebarProps> = ({ className,setClickSide,value,setValue
 
   const handleDelete = (i : number) => {
     /* sementara  nanti disini update history */
-    setHistories(history.filter((history) => history.id !== i));
+    // setHistories(history.filter((history) => history.id !== i));
+    axios.delete('http://localhost:1234/histori',
+    {
+        params: {
+            Id_histori: i
+        }
+      })
+      .then((res) => {
+        console.log(res.data);
+        axios.get('http://localhost:1234/allhistori').then((res) => {
+          setIsLoading(false);
+          setHistories(res.data);
+        }
+        ).catch((err) => {
+          console.log(err);
+          setIsLoading(false);
+        })
+      })
+      .catch((err) => {
+        console.log(err);
+      }
+    )
+    
   }
   useEffect(() => {
     setIsLoading(true);
@@ -39,15 +62,24 @@ const Sidebar: React.FC<sidebarProps> = ({ className,setClickSide,value,setValue
       // cleanup
     }
   }, []);
+
+  useEffect(() => {
+    if (refHistori.current) {
+      refHistori.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [clicked]);
+  
+
   return (
       <div className={className}>
-        <Button className='w-full p-3' size="lg" m="1" variant="sideButtonAdd" leftIcon={<AddIcon/>} justifyContent="flex-center" onClick={()=>handleClick(-1)}>New Chat</Button>
+        <Button className='w-full p-3' size="lg" m="1" variant="sideButtonAdd" leftIcon={<AddIcon/>} justifyContent="flex-center" onClick={()=>{handleClick(-1);setCount(0)}}>New Chat</Button>
         <div className='flex-col max-h-screen overflow-y-auto'>
                 <div>
                   {!isLoading && history.map((i:history) => (
                       <SideButton key={i.id} history={i} clicked={clicked} handleClick={handleClick} handleDelete={handleDelete}/>
                   ))}
                 </div>
+                <div ref={refHistori}></div>
         </div>
         <span className='flex-auto flex justify-center items-center'>
           {isLoading && <Spinner color="white" />}
