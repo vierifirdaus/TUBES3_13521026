@@ -247,7 +247,7 @@ func dateCheck(date string) bool {
 	return pattern.MatchString(date)
 }
 
-func parserDateCheck(date string) string {
+func parsingDate(date string) string {
 	if dateCheck(date) {
 		pattern, _ := regexp.Compile(`(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\/\d{4}`)
 		return pattern.FindStringSubmatch(date)[0]
@@ -260,30 +260,30 @@ func getDay(date string) string {
 	if dateCheck(date) == false {
 		return "Format tanggal salah"
 	}
-	days := []string{"Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"}
+	// Mengubah bulan Januari dan Februari menjadi bulan ke-13 dan ke-14
+	// dan mengurangi tahun sebanyak 1 untuk perhitungan
 	dateParts := strings.Split(date, "/")
 	day, _ := strconv.Atoi(dateParts[0])
 	month, _ := strconv.Atoi(dateParts[1])
 	year, _ := strconv.Atoi(dateParts[2])
 
-	var (
-		a, b, c, d, e, f, g int
-	)
-
-	if month < 3 {
-		year--
+	if month == 1 || month == 2 {
 		month += 12
+		year -= 1
 	}
+	// Menghitung hari dalam minggu menggunakan rumus Zeller's congruence
+	// Rumus: h = (q + ((13*(m+1))/5) + K + (K/4) + (J/4) - 2*J) mod 7
+	// K = tahun % 100, J = tahun / 100
+	var q = day
+	var m = month
+	var K = year % 100
+	var J = year / 100
 
-	a = year / 100
-	b = a / 4
-	c = 2 - a + b
-	d = 365*year/4 + 30*month/5 + day + c - 36525
-	e = d % 7
-	f = (e + 7) % 7
-	g = f % 7
+	var h = (q + ((13 * (m + 1)) / 5) + K + (K / 4) + (J / 4) - 2*J) % 7
 
-	return days[g]
+	// Menentukan nama hari berdasarkan nilai h
+	var daysOfWeek = []string{"Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"}
+	return daysOfWeek[h]
 }
 
 // func main() {

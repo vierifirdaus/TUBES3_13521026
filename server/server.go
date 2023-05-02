@@ -19,6 +19,10 @@ type (
 		Pertanyaan string `json:"pertanyaan"`
 		Jawaban    string `json:"jawaban"`
 	}
+	PertayaanHistori struct {
+		Pertanyaan string `json:"pertanyaan"`
+		ID_histori int    `json:"id_histori"`
+	}
 	HistoriReq struct {
 		Nama string `json:"nama"`
 	}
@@ -48,7 +52,7 @@ type (
 )
 
 func connect() (*sql.DB, error) {
-	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)"+"/tubes3")
+	db, err := sql.Open("mysql", "root:qwerty@tcp(127.0.0.1:3306)"+"/tubes3")
 	if err != nil {
 		fmt.Println("error")
 	}
@@ -79,43 +83,156 @@ func getAllHistori(c echo.Context) error {
 }
 
 func findAnswer(c echo.Context) error {
-	var quest PertanyaanReq
-	err := c.Bind(&quest)
+	var questHistori PertayaanHistori
+	err := c.Bind(&questHistori)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, "error 1")
+	}
+
+	var quest PertanyaanReq
+	quest.Pertanyaan = questHistori.Pertanyaan
+
+	//add respon question
+	var statusRespon string
+	var respon Respon
+	respon.ID_histori = questHistori.ID_histori
+	respon.Jenis = "input"
+	respon.Isi = quest.Pertanyaan
+	statusRespon = addResponReq(respon)
+	if statusRespon == "success" {
+		fmt.Println("Berhasil add respon")
+	} else {
+		fmt.Println("Gagal add respon")
 	}
 
 	quest.Pertanyaan = strings.ToLower(quest.Pertanyaan)
 
 	if dateCheck(quest.Pertanyaan) {
-		return c.JSON(http.StatusOK, "Hari"+getDay(quest.Pertanyaan))
+		var statusRespon string
+		var respon Respon
+		respon.ID_histori = questHistori.ID_histori
+		respon.Jenis = "output"
+		respon.Isi = "Hari dari tanggal " + parsingDate(quest.Pertanyaan) + " adalah " + getDay(parsingDate(quest.Pertanyaan))
+		statusRespon = addResponReq(respon)
+		if statusRespon == "success" {
+			fmt.Println("Berhasil add respon")
+		} else {
+			fmt.Println("Gagal add respon")
+		}
+
+		return c.JSON(http.StatusOK, "Hari dari tanggal "+parsingDate(quest.Pertanyaan)+" adalah "+getDay(parsingDate(quest.Pertanyaan)))
 	} else if updateQuestionCheck(quest.Pertanyaan) {
 		var question Pertanyaan
 		question.Jawaban = parsingUpdateQuestion(quest.Pertanyaan)[1]
 		question.Pertanyaan = parsingUpdateQuestion(quest.Pertanyaan)[0]
 		var status string
 		status = addQuestionReq(question)
+
+		var statusRespon string
+		var respon Respon
+		respon.ID_histori = questHistori.ID_histori
+		respon.Jenis = "output"
+
 		if status == "success" {
+			if questionCheck(question.Pertanyaan) {
+				respon.Isi = "Pertanyaan " + question.Pertanyaan + " sudah ada! Jawaban diupdate ke " + question.Jawaban
+			} else {
+				respon.Isi = "Pertanyaan " + question.Pertanyaan + "telah ditambahkan"
+			}
+			statusRespon = addResponReq(respon)
+
+			if statusRespon == "success" {
+				fmt.Println("Berhasil add respon")
+			} else {
+				fmt.Println("Gagal add respon")
+			}
+
 			return c.JSON(http.StatusOK, "Berhasil update pertanyaan")
 		} else {
 			return c.JSON(http.StatusOK, "Gagal update pertanyaan")
 		}
+	} else if deleteQuestionCheck(quest.Pertanyaan) {
+		var question string
+		question = parsingDeleteQuestion(quest.Pertanyaan)
+		var status string
+		status = deleteQuestionReq(question)
+		if questionCheck(question) {
+			var statusRespon string
+			var respon Respon
+			respon.ID_histori = questHistori.ID_histori
+			respon.Jenis = "output"
+			respon.Isi = "Pertanyaan " + question + " telah dihapus"
+			statusRespon = addResponReq(respon)
+			if statusRespon == "success" {
+				fmt.Println("Berhasil add respon")
+			} else {
+				fmt.Println("Gagal add respon")
+			}
+		} else {
+			var statusRespon string
+			var respon Respon
+			respon.ID_histori = questHistori.ID_histori
+			respon.Jenis = "output"
+			respon.Isi = "Tidak ada pertanyaan " + question + " dalam database"
+			statusRespon = addResponReq(respon)
+			if statusRespon == "success" {
+				fmt.Println("Berhasil add respon")
+			} else {
+				fmt.Println("Gagal add respon")
+			}
+		}
+		if status == "success" {
+			return c.JSON(http.StatusOK, "Berhasil hapus pertanyaan")
+		} else {
+			return c.JSON(http.StatusOK, "Gagal hapus pertanyaan")
+		}
+	} else {
+		db, err := connect()
+		if err != nil {
+			return c.JSON(http.StatusUnprocessableEntity, "error 2")
+		}
+		defer db.Close()
+
+		row := db.QueryRow("SELECT jawaban FROM pertanyaan WHERE LOWER(pertanyaan) = ?", quest.Pertanyaan)
+		var answer string
+		err = row.Scan(&answer)
+		if err != nil {
+			return c.JSON(http.StatusUnprocessableEntity, "error 3")
+		}
+
+		return c.JSON(http.StatusOK, answer)
 	}
 
+}
+
+func questionCheck(question string) bool {
 	db, err := connect()
 	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, "error 2")
+		fmt.Println("error")
 	}
 	defer db.Close()
 
-	row := db.QueryRow("SELECT jawaban FROM pertanyaan WHERE LOWER(pertanyaan) = ?", quest.Pertanyaan)
-	var answer string
-	err = row.Scan(&answer)
+	rows, err := db.Query("select Pertanyaan,Jawaban from pertanyaan where Pertanyaan=? ", question)
 	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, "error 3")
+		fmt.Println(err.Error())
 	}
+	defer rows.Close()
 
-	return c.JSON(http.StatusOK, answer)
+	var result []Pertanyaan
+	fmt.Println(rows)
+	if rows.Next() {
+		var each = Pertanyaan{}
+		var err = rows.Scan(&each.Pertanyaan, &each.Jawaban)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		result = append(result, each)
+	}
+	if len(result) > 0 {
+		return true
+	} else {
+		return false
+	}
 }
 
 func addQuestion(c echo.Context) error {
@@ -174,6 +291,21 @@ func addQuestion(c echo.Context) error {
 	return c.JSON(http.StatusCreated, quest)
 }
 
+func deleteQuestionReq(question string) string {
+	db, err := connect()
+	if err != nil {
+		return "err"
+	}
+	defer db.Close()
+
+	_, err = db.Exec("DELETE FROM pertanyaan WHERE Pertanyaan = ?", question)
+	if err != nil {
+		return "err"
+	}
+
+	return "success"
+}
+
 func addQuestionReq(quest Pertanyaan) string {
 	db, err := connect()
 	if err != nil {
@@ -223,6 +355,21 @@ func addQuestionReq(quest Pertanyaan) string {
 
 	return "success"
 }
+func addResponReq(respon Respon) string {
+
+	db, err := connect()
+	if err != nil {
+		return "err"
+	}
+	defer db.Close()
+
+	_, err = db.Exec("INSERT INTO respon (ID_histori,Jenis,Isi) VALUES (?,?,?)", respon.ID_histori, respon.Jenis, respon.Isi)
+	if err != nil {
+		return "err"
+	}
+
+	return "success"
+}
 
 func addRespon(c echo.Context) error {
 	var respon Respon
@@ -244,8 +391,6 @@ func addRespon(c echo.Context) error {
 
 	return c.JSON(http.StatusCreated, respon)
 }
-
-
 
 func getChatFromId(c echo.Context) error {
 	var histori HistoriReqId
