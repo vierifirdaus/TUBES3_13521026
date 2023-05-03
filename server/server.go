@@ -23,6 +23,7 @@ type (
 	PertayaanHistori struct {
 		Pertanyaan string `json:"pertanyaan"`
 		ID_histori int    `json:"id_histori"`
+		Jenis      string `json:"jenis"`
 	}
 	HistoriReq struct {
 		Nama string `json:"nama"`
@@ -212,17 +213,66 @@ func findAnswer(c echo.Context) error {
 			return c.JSON(http.StatusOK, "Input tidak valid")
 		}
 	} else {
+		var statusRespon string
+		var respon Respon
+		respon.ID_histori = questHistori.ID_histori
+		respon.Jenis = "output"
+		jenisSearching := questHistori.Jenis
 		db, err := connect()
 		if err != nil {
 			return c.JSON(http.StatusUnprocessableEntity, "error 2")
 		}
 		defer db.Close()
 
-		row := db.QueryRow("SELECT jawaban FROM pertanyaan WHERE LOWER(pertanyaan) = ?", quest.Pertanyaan)
-		var answer string
-		err = row.Scan(&answer)
+		rows, err := db.Query("select Pertanyaan,Jawaban from pertanyaan")
 		if err != nil {
-			return c.JSON(http.StatusUnprocessableEntity, "error 3")
+			fmt.Println(err.Error())
+		}
+		defer rows.Close()
+
+		var result []Pertanyaan
+		fmt.Println(rows)
+		for rows.Next() {
+			var each = Pertanyaan{}
+			var err = rows.Scan(&each.Pertanyaan, &each.Jawaban)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			result = append(result, each)
+		}
+		var pertanyaanList []string
+		for _, item := range result {
+			pertanyaanList = append(pertanyaanList, item.Pertanyaan)
+		}
+		var jawabanList []string
+		for _, item := range result {
+			jawabanList = append(jawabanList, item.Jawaban)
+		}
+		var answer string
+		if jenisSearching == "1" {
+			questionSimilar, hasil := findMostSimilarKMP(quest.Pertanyaan, pertanyaanList)
+			if hasil {
+				answer = findAnswerKMP(questionSimilar, pertanyaanList, jawabanList)
+			} else {
+				answer = "Maaf, saya tidak mengerti pertanyaan anda"
+			}
+			fmt.Println("answer", answer)
+		} else {
+			questionSimilar, hasil := findMostSimilarBM(quest.Pertanyaan, pertanyaanList)
+			if hasil {
+				answer = findAnswerBM(questionSimilar, pertanyaanList, jawabanList)
+			} else {
+				answer = "Maaf, saya tidak mengerti pertanyaan anda"
+			}
+			fmt.Println("answer", answer)
+		}
+
+		respon.Isi = answer
+		statusRespon = addResponReq(respon)
+		if statusRespon == "success" {
+			fmt.Println("Berhasil add respon")
+		} else {
+			fmt.Println("Gagal add respon")
 		}
 
 		return c.JSON(http.StatusOK, answer)

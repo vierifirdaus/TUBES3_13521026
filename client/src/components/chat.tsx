@@ -1,13 +1,13 @@
 import React,{useState,useEffect,useRef} from 'react'
 import { useToast } from '@chakra-ui/react'
 import Message from './message'
-import SendMessage from './sendMessage'
+import SendMessage from './sendmessage'
 import { chatProps } from '../interface'
 import axios from 'axios'
 import TypingAnimation from './typingMessage'
 
 
-const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked,count,setCount,setChatLog,chatLog,refHistori}) => {
+const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked,count,setCount,setChatLog,chatLog,refHistori,value}) => {
     const toast = useToast()
     const refBottom = useRef<HTMLDivElement>(null)
     const [inputValue, setInputValue] = useState<string>('')
@@ -108,7 +108,8 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
         setIsLoading(true)
         axios.post('http://localhost:1234/find',{
             pertanyaan: inputValue,
-            id_histori: id
+            id_histori: id,
+            jenis: value
         }).then((res) => {
             console.log("data")
             console.log(res.data)

@@ -17,6 +17,7 @@ export interface chatProps {
     chatLog: message[];
     setChatLog: React.Dispatch<React.SetStateAction<message[]>>;
     refHistori:React.RefObject<HTMLDivElement>;
+    value: string;
 
 }
 
