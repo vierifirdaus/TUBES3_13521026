@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -133,9 +134,9 @@ func findAnswer(c echo.Context) error {
 		respon.Jenis = "output"
 
 		if questionCheck(question.Pertanyaan) {
+			respon.Isi = "Pertanyaan " + question.Pertanyaan + " sudah ada! Jawaban diupdate ke " + question.Jawaban
 			status = addQuestionReq(question)
 			statusRespon = addResponReq(respon)
-			respon.Isi = "Pertanyaan " + question.Pertanyaan + " sudah ada! Jawaban diupdate ke " + question.Jawaban
 			if status == "success" {
 				fmt.Println("Berhasil add respon")
 			} else {
@@ -143,9 +144,9 @@ func findAnswer(c echo.Context) error {
 			}
 			return c.JSON(http.StatusOK, "Pertanyaan "+question.Pertanyaan+" sudah ada! Jawaban diupdate ke "+question.Jawaban)
 		} else {
+			respon.Isi = "Pertanyaan " + question.Pertanyaan + "telah ditambahkan"
 			status = addQuestionReq(question)
 			statusRespon = addResponReq(respon)
-			respon.Isi = "Pertanyaan " + question.Pertanyaan + "telah ditambahkan"
 			if status == "success" {
 				fmt.Println("Berhasil add respon")
 			} else {
@@ -187,18 +188,29 @@ func findAnswer(c echo.Context) error {
 			return c.JSON(http.StatusOK, "Tidak ada pertanyaan "+question+" dalam database")
 		}
 	} else if calculatorCheck(quest.Pertanyaan) {
-		var statusRespon string
+		result, e := calculator(parsingCalculator(quest.Pertanyaan))
 		var respon Respon
 		respon.ID_histori = questHistori.ID_histori
 		respon.Jenis = "output"
-		respon.Isi = "Hasil dari " + quest.Pertanyaan + " adalah " + calculator(quest.Pertanyaan)
-		statusRespon = addResponReq(respon)
-		if statusRespon == "success" {
-			fmt.Println("Berhasil add respon")
+		if e == nil {
+			respon.Isi = "Hasil dari " + parsingCalculator(quest.Pertanyaan) + " adalah " + strconv.FormatFloat(result, 'f', 2, 64)
+			var statusRespon = addResponReq(respon)
+			if statusRespon == "success" {
+				fmt.Println("Berhasil add respon")
+			} else {
+				fmt.Println("Gagal add respon")
+			}
+			return c.JSON(http.StatusOK, "Hasil dari "+parsingCalculator(quest.Pertanyaan)+" adalah "+strconv.FormatFloat(result, 'f', 2, 64))
 		} else {
-			fmt.Println("Gagal add respon")
+			respon.Isi = "Input tidak valid"
+			var statusRespon = addResponReq(respon)
+			if statusRespon == "success" {
+				fmt.Println("Berhasil add respon")
+			} else {
+				fmt.Println("Gagal add respon")
+			}
+			return c.JSON(http.StatusOK, "Input tidak valid")
 		}
-		return c.JSON(http.StatusOK, "Hasil dari "+quest.Pertanyaan+" adalah "+calculator(quest.Pertanyaan))
 	} else {
 		db, err := connect()
 		if err != nil {

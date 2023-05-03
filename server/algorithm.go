@@ -300,10 +300,6 @@ func parsingCalculator(calculator string) string {
 	}
 }
 
-func calculator(calculator string) string {
-	return calculator
-}
-
 // func main() {
 // 	reader := bufio.NewReader(os.Stdin)
 // 	fmt.Println("Selamat datang di ChatGPT!")
