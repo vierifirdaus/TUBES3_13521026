@@ -306,7 +306,7 @@ func findAnswer(c echo.Context) error {
 			fmt.Println("Gagal add respon")
 		}
 
-		return c.JSON(http.StatusOK, quest.Pertanyaan)
+		return c.JSON(http.StatusOK, answer)
 	}
 
 }
