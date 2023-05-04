@@ -115,15 +115,29 @@ func findAnswer(c echo.Context) error {
 		var respon Respon
 		respon.ID_histori = questHistori.ID_histori
 		respon.Jenis = "output"
-		respon.Isi = "Hari dari tanggal " + parsingDate(quest.Pertanyaan) + " adalah " + getDay(parsingDate(quest.Pertanyaan))
-		statusRespon = addResponReq(respon)
-		if statusRespon == "success" {
-			fmt.Println("Berhasil add respon")
-		} else {
-			fmt.Println("Gagal add respon")
-		}
+		var str1 string
+		str1 = parsingValidDate(parsingDate(quest.Pertanyaan))
+		fmt.Println(str1)
+		if isValidDate(str1) {
+			respon.Isi = "Hari dari tanggal " + parsingDate(quest.Pertanyaan) + " adalah " + getDay(parsingDate(quest.Pertanyaan))
+			statusRespon = addResponReq(respon)
+			if statusRespon == "success" {
+				fmt.Println("Berhasil add respon")
+			} else {
+				fmt.Println("Gagal add respon")
+			}
 
-		return c.JSON(http.StatusOK, "Hari dari tanggal "+parsingDate(quest.Pertanyaan)+" adalah "+getDay(parsingDate(quest.Pertanyaan)))
+			return c.JSON(http.StatusOK, "Hari dari tanggal "+parsingDate(quest.Pertanyaan)+" adalah "+getDay(parsingDate(quest.Pertanyaan)))
+		} else {
+			respon.Isi = "Tanggal " + parsingDate(quest.Pertanyaan) + " tidak valid"
+			statusRespon = addResponReq(respon)
+			if statusRespon == "success" {
+				fmt.Println("Berhasil add respon")
+			} else {
+				fmt.Println("Gagal add respon")
+			}
+			return c.JSON(http.StatusOK, "Tanggal "+parsingDate(quest.Pertanyaan)+" tidak valid")
+		}
 	} else if updateQuestionCheck(quest.Pertanyaan) { // aman
 		var question Pertanyaan
 		question.Jawaban = parsingUpdateQuestion(quest.Pertanyaan)[1]
@@ -188,21 +202,38 @@ func findAnswer(c echo.Context) error {
 			}
 			return c.JSON(http.StatusOK, "Tidak ada pertanyaan "+question+" dalam database")
 		}
-	} else if calculatorCheck(quest.Pertanyaan) {
-		result, e := calculator(parsingCalculator(quest.Pertanyaan))
-		var respon Respon
-		respon.ID_histori = questHistori.ID_histori
-		respon.Jenis = "output"
-		if e == nil {
-			respon.Isi = "Hasil dari " + parsingCalculator(quest.Pertanyaan) + " adalah " + strconv.FormatFloat(result, 'f', 2, 64)
-			var statusRespon = addResponReq(respon)
-			if statusRespon == "success" {
-				fmt.Println("Berhasil add respon")
+	} else if allMath(filterMath(quest.Pertanyaan)) && filterMath(quest.Pertanyaan) != "" {
+		var strOperation string
+		strOperation = filterMath(quest.Pertanyaan)
+		fmt.Println(strOperation, calculatorCheck(strOperation))
+		if calculatorCheck(strOperation) {
+			result, e := calculator(strOperation)
+			var respon Respon
+			respon.ID_histori = questHistori.ID_histori
+			respon.Jenis = "output"
+			if e == nil {
+				respon.Isi = "Hasil dari " + strOperation + " adalah " + strconv.FormatFloat(result, 'f', 2, 64)
+				var statusRespon = addResponReq(respon)
+				if statusRespon == "success" {
+					fmt.Println("Berhasil add respon")
+				} else {
+					fmt.Println("Gagal add respon")
+				}
+				return c.JSON(http.StatusOK, "Hasil dari "+strOperation+" adalah "+strconv.FormatFloat(result, 'f', 2, 64))
 			} else {
-				fmt.Println("Gagal add respon")
+				respon.Isi = "Input tidak valid"
+				var statusRespon = addResponReq(respon)
+				if statusRespon == "success" {
+					fmt.Println("Berhasil add respon")
+				} else {
+					fmt.Println("Gagal add respon")
+				}
+				return c.JSON(http.StatusOK, "Input tidak valid")
 			}
-			return c.JSON(http.StatusOK, "Hasil dari "+parsingCalculator(quest.Pertanyaan)+" adalah "+strconv.FormatFloat(result, 'f', 2, 64))
 		} else {
+			var respon Respon
+			respon.ID_histori = questHistori.ID_histori
+			respon.Jenis = "output"
 			respon.Isi = "Input tidak valid"
 			var statusRespon = addResponReq(respon)
 			if statusRespon == "success" {
@@ -275,7 +306,7 @@ func findAnswer(c echo.Context) error {
 			fmt.Println("Gagal add respon")
 		}
 
-		return c.JSON(http.StatusOK, answer)
+		return c.JSON(http.StatusOK, quest.Pertanyaan)
 	}
 
 }
