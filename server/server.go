@@ -625,7 +625,7 @@ func updateHistoriName(c echo.Context) error {
 	}
 	defer db.Close()
 
-	update, err := db.Exec("UPDATE Histori SET Nama = ? WHERE ID_histori = ?", historiChange.NewName, historiChange.ID_histori)
+	update, err := db.Exec("UPDATE histori SET Nama = ? WHERE ID_histori = ?", historiChange.NewName, historiChange.ID_histori)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, "error 2")
 	}
