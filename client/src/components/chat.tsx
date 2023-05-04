@@ -1,7 +1,7 @@
 import React,{useState,useEffect,useRef} from 'react'
 import { useToast } from '@chakra-ui/react'
 import Message from './message'
-import SendMessage from './sendMessage'
+import SendMessage from './sendmessage'
 import { chatProps } from '../interface'
 import axios from 'axios'
 import TypingAnimation from './typingMessage'
