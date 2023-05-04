@@ -283,17 +283,17 @@ func findAnswer(c echo.Context) error {
 		}
 		var answer string
 		if jenisSearching == "1" {
-			questionSimilar, hasil := findMostSimilarKMP(quest.Pertanyaan, pertanyaanList)
-			if hasil {
-				answer = findAnswerKMP(questionSimilar, pertanyaanList, jawabanList)
+			questionSimilar, hasil := findMatch(quest.Pertanyaan, pertanyaanList, jawabanList, "kmp")
+			if hasil == nil {
+				answer = questionSimilar
 			} else {
 				answer = "Maaf, saya tidak mengerti pertanyaan anda"
 			}
 			fmt.Println("answer", answer)
 		} else {
-			questionSimilar, hasil := findMostSimilarBM(quest.Pertanyaan, pertanyaanList)
-			if hasil {
-				answer = findAnswerBM(questionSimilar, pertanyaanList, jawabanList)
+			questionSimilar, hasil := findMatch(quest.Pertanyaan, pertanyaanList, jawabanList, "bm")
+			if hasil == nil {
+				answer = questionSimilar
 			} else {
 				answer = "Maaf, saya tidak mengerti pertanyaan anda"
 			}
@@ -406,8 +406,9 @@ func deleteQuestionReq(question string) string {
 	}
 	defer db.Close()
 
-	_, err = db.Exec("DELETE FROM pertanyaan WHERE Pertanyaan = ?", question)
+	_, err = db.Exec("DELETE FROM pertanyaan WHERE pertanyaan = ?", question)
 	if err != nil {
+		fmt.Println("gagal hapus")
 		return "err"
 	}
 
