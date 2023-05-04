@@ -32,7 +32,15 @@ const Sidebar: React.FC<sidebarProps> = ({ className,setClickSide,value,setValue
         console.log(res.data);
         axios.get('http://localhost:1234/allhistori').then((res) => {
           setIsLoading(false);
-          setHistories(res.data);
+          if(res.data == null){
+            setClickSide(-1);
+            setClicked(-1);
+            setCount(0);
+            setHistories([]);
+          }else{
+            setHistories(res.data);
+          }
+
         }
         ).catch((err) => {
           console.log(err);
@@ -49,7 +57,14 @@ const Sidebar: React.FC<sidebarProps> = ({ className,setClickSide,value,setValue
     setIsLoading(true);
     axios.get('http://localhost:1234/allhistori').then((res) => {
       setIsLoading(false);
-      setHistories(res.data);
+      if(res.data == null){
+        setClickSide(-1);
+        setClicked(-1);
+        setCount(0);
+        setHistories([]);
+      }else{
+        setHistories(res.data);
+      }
     }).catch((err) => {
         console.log(err);
         setIsLoading(false);
