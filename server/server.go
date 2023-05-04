@@ -54,7 +54,7 @@ type (
 )
 
 func connect() (*sql.DB, error) {
-	db, err := sql.Open("mysql", "root:qwerty@tcp(127.0.0.1:3306)"+"/tubes3")
+	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)"+"/tubes3")
 	if err != nil {
 		fmt.Println("error")
 	}

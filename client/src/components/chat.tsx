@@ -1,7 +1,7 @@
 import React,{useState,useEffect,useRef} from 'react'
 import { useToast } from '@chakra-ui/react'
 import Message from './message'
-import SendMessage from './sendmessage'
+import SendMessage from './sendMessage'
 import { chatProps } from '../interface'
 import axios from 'axios'
 import TypingAnimation from './typingMessage'
@@ -25,8 +25,6 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
                     
                 })
                 .then((res) => {
-                    console.log("data")
-                    console.log(res.data)
                     if(res.data.isi == null){
                         setChatLog([])
                     }else{
@@ -39,7 +37,6 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
         }else{
             setChatLog([])
         }
-        console.log(clickSide)
         refBottom.current?.scrollIntoView({ behavior: 'smooth' });
         return () => {
             setChatLog([])
@@ -52,7 +49,6 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
 
     const handleInput = async (e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLTextAreaElement>) => {
         e.preventDefault()
-        console.log("click")
         if( inputValue.trim() === ''){
             toast({
                 title: 'Error Sending Message',
@@ -63,13 +59,10 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
               })
             return
         }
-        console.log(clickSide)
-        console.log(count)
         setInputValue('')
         setChatLog([...chatLog, {id: chatLog.length + 1, id_histori: 1, jenis: "input", isi: inputValue}])
         if(count == 0 && clickSide == -1){
             const res = await updateHistory()
-            //
         }else{
             getBotResponse(idHistori)
         }
@@ -82,12 +75,8 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
                     nama: inputValue
                 })
                 .then((res) => {
-                    console.log("data")
-                    console.log(res.data)
                     axios.get('http://localhost:1234/allhistori')
                     .then((res) => {
-                        console.log("data")
-                        console.log(res.data)
                         setHistories(res.data)
                         setCount(count+1)
                         setClicked(res.data[res.data.length-1].id)
@@ -111,7 +100,6 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
             id_histori: id,
             jenis: value
         }).then((res) => {
-            console.log("data")
             console.log(res.data)
             setChatLog(prevdata => [...prevdata, {id: prevdata.length + 1, id_histori: 1, jenis: "output", isi: res.data}])
             setIsLoading(false)
