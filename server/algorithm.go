@@ -43,69 +43,45 @@ func findMatch(question string, questions []string, answers []string, algo strin
 			similarQuestions = append(similarQuestions, q)
 		}
 	}
+
 	if bestMatch != "" {
 		return bestMatch, nil
-	} else if len(similarQuestions) >= 3 {
-		// sort similar questions by Levenshtein distance
-		sort.Slice(similarQuestions, func(i, j int) bool {
-			return levenshteinDistance(processedQuestion, processText(similarQuestions[i])) < levenshteinDistance(processedQuestion, processText(similarQuestions[j]))
-		})
-		// select the 3 most similar questions
-		selectedQuestions := similarQuestions[:3]
-		// construct response message
-		var sb strings.Builder
-		sb.WriteString("Pertanyaan Anda tidak ditemukan. Pertanyaan yang mirip:\n")
-		for _, q := range selectedQuestions {
-			sb.WriteString(fmt.Sprintf("- %s\n", q))
+	} else {
+		// filter out non-similar questions
+		similarityThreshold := 60
+		var topQuestions []string
+		for _, q := range similarQuestions {
+			score := levenshteinDistance(processedQuestion, processText(q))
+			maxScore := (len(processedQuestion) + len(q)) / 2
+			similarity := 100 - ((score * 100) / maxScore)
+			if similarity >= similarityThreshold {
+				topQuestions = append(topQuestions, q)
+			}
 		}
-		return sb.String(), nil
+
+		if len(topQuestions) > 0 {
+			// sort top questions by similarity score
+			sort.Slice(topQuestions, func(i, j int) bool {
+				score1 := levenshteinDistance(processedQuestion, processText(topQuestions[i]))
+				score2 := levenshteinDistance(processedQuestion, processText(topQuestions[j]))
+				return score1 < score2
+			})
+
+			// construct response message
+			var sb strings.Builder
+			sb.WriteString("Pertanyaan Anda tidak ditemukan. Pertanyaan yang mirip:\n")
+			maxQuestions := 3
+			if len(topQuestions) < 3 {
+				maxQuestions = len(topQuestions)
+			}
+			for i := 0; i < maxQuestions; i++ {
+				sb.WriteString(fmt.Sprintf("- %s\n", topQuestions[i]))
+			}
+			return sb.String(), nil
+		}
 	}
 
 	return "", fmt.Errorf("Maaf, saya tidak mengerti pertanyaan Anda.")
-}
-
-func levenshteinDistance(s, t string) int {
-	m := len(s)
-	n := len(t)
-
-	if m == 0 {
-		return n
-	} else if n == 0 {
-		return m
-	}
-
-	// initialize matrix
-	d := make([][]int, m+1)
-	for i := range d {
-		d[i] = make([]int, n+1)
-		d[i][0] = i
-	}
-	for j := 1; j <= n; j++ {
-		d[0][j] = j
-	}
-
-	// calculate distance
-	for j := 1; j <= n; j++ {
-		for i := 1; i <= m; i++ {
-			var cost int
-			if s[i-1] == t[j-1] {
-				cost = 0
-			} else {
-				cost = 1
-			}
-
-			d[i][j] = min(min(d[i-1][j]+1, d[i][j-1]+1), d[i-1][j-1]+cost)
-		}
-	}
-
-	return d[m][n]
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 func KMP(text string, pattern string) bool {
@@ -186,6 +162,50 @@ func BM(text string, pattern string) bool {
 
 func max(a, b int) int {
 	if a > b {
+		return a
+	}
+	return b
+}
+
+func levenshteinDistance(s, t string) int {
+	m := len(s)
+	n := len(t)
+
+	if m == 0 {
+		return n
+	} else if n == 0 {
+		return m
+	}
+
+	// initialize matrix
+	d := make([][]int, m+1)
+	for i := range d {
+		d[i] = make([]int, n+1)
+		d[i][0] = i
+	}
+	for j := 1; j <= n; j++ {
+		d[0][j] = j
+	}
+
+	// calculate distance
+	for j := 1; j <= n; j++ {
+		for i := 1; i <= m; i++ {
+			var cost int
+			if s[i-1] == t[j-1] {
+				cost = 0
+			} else {
+				cost = 1
+			}
+
+			d[i][j] = min(min(d[i-1][j]+1, d[i][j-1]+1), d[i-1][j-1]+cost)
+		}
+	}
+
+	return d[m][n]
+}
+
+func min(a, b int) int {
+	if a < b {
 		return a
 	}
 	return b
