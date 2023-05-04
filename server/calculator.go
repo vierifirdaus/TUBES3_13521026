@@ -3,7 +3,28 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"strings"
+	"unicode"
 )
+
+func allMath(s string) bool {
+	for _, c := range s {
+		if !unicode.IsDigit(c) && !strings.ContainsRune("+-*/^()", c) {
+			return false
+		}
+	}
+	return true
+}
+
+func filterMath(s string) string {
+	var result strings.Builder
+	for _, c := range s {
+		if unicode.IsDigit(c) || strings.ContainsRune("+-*/^()", c) {
+			result.WriteRune(c)
+		}
+	}
+	return result.String()
+}
 
 func calculator(input string) (float64, error) {
 	tokens := tokenize(input)

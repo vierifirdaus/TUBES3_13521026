@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // mencari pertanyaan paling mirip menggunakan algoritma KMP
@@ -243,17 +244,53 @@ func parsingUpdateQuestion(question string) []string {
 }
 
 func dateCheck(date string) bool {
-	var pattern, _ = regexp.Compile(`(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\/\d{4}`)
+	var pattern, _ = regexp.Compile(`([0-9]|[0-9][0-9])\/([0-9]|[0-9][0-9])\/([0-9]|[0-9][0-9]|[0-9][0-9][0-9]|[0-9][0-9][0-9][0-9])`)
 	return pattern.MatchString(date)
 }
 
 func parsingDate(date string) string {
 	if dateCheck(date) {
-		pattern, _ := regexp.Compile(`(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\/\d{4}`)
+		pattern, _ := regexp.Compile(`([0-9]|[0-9][0-9])\/([0-9]|[0-9][0-9])\/([0-9]|[0-9][0-9]|[0-9][0-9][0-9]|[0-9][0-9][0-9][0-9])`)
 		return pattern.FindStringSubmatch(date)[0]
 	} else {
 		return ""
 	}
+}
+
+func isValidDate(dateString string) bool {
+	_, err := time.Parse("02/01/2006", dateString)
+	return err == nil
+}
+
+func parsingValidDate(dateString string) string {
+	dateParts := strings.Split(dateString, "/")
+	day, _ := strconv.Atoi(dateParts[0])
+	month, _ := strconv.Atoi(dateParts[1])
+	year, _ := strconv.Atoi(dateParts[2])
+	var dayString, monthString, yearString string
+	if day%10 == day {
+		dayString = "0" + strconv.Itoa(day)
+	} else {
+		dayString = strconv.Itoa(day)
+	}
+
+	if month%10 == month {
+		monthString = "0" + strconv.Itoa(month)
+	} else {
+		monthString = strconv.Itoa(month)
+	}
+
+	if year%10 == year {
+		yearString = "000" + strconv.Itoa(year)
+	} else if year%100 == year {
+		yearString = "0" + strconv.Itoa(year)
+	} else if year%1000 == year {
+		yearString = "0" + strconv.Itoa(year)
+	} else {
+		yearString = strconv.Itoa(year)
+	}
+
+	return dayString + "/" + monthString + "/" + yearString
 }
 
 func getDay(date string) string {
