@@ -9,189 +9,109 @@ import (
 	"time"
 )
 
-// mencari pertanyaan paling mirip menggunakan algoritma KMP
-func findMostSimilarKMP(question string, questions []string) (string, bool) {
-	var mostSimilarQuestion string
-	var similarity float64
-	for _, q := range questions {
-		match := KMP(question, q)
-		if match >= 0 {
-			currentSimilarity := float64(len(q)) / float64(len(question))
-			if currentSimilarity > similarity {
-				similarity = currentSimilarity
-				mostSimilarQuestion = q
-			}
+package main
+
+import (
+	"fmt"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+)
+
+func findMatch(question string, questions []string, answers []string, algo string) (string, error) {
+	processedQuestion := processText(question)
+
+	// choose algorithm
+	var matchFunc func(string, string) bool
+	switch algo {
+	case "kmp":
+		matchFunc = KMP
+	case "bm":
+		matchFunc = BM
+	default:
+		return "", fmt.Errorf("Algoritma tidak valid")
+	}
+
+	// check for exact match using chosen algorithm
+	for i, q := range questions {
+		if matchFunc(processedQuestion, processText(q)) {
+			return answers[i], nil
 		}
 	}
-	if similarity >= 0.9 {
-		return mostSimilarQuestion, true
-	} else {
-		return "", false
+
+	// check for approximate match using Levenshtein
+	bestScore := -1
+	bestMatch := ""
+	var similarQuestions []string
+	for i, q := range questions {
+		score := levenshteinDistance(processedQuestion, processText(q))
+		maxScore := (len(processedQuestion) + len(q)) / 2
+		// score threshold for a good match
+		if score <= maxScore/10 && score > bestScore*9/10 {
+			bestScore = score
+			bestMatch = answers[i]
+		} else if score >= maxScore/9 {
+			similarQuestions = append(similarQuestions, q)
+		}
 	}
+	if bestMatch != "" {
+		return bestMatch, nil
+	} else if len(similarQuestions) >= 3 {
+		// sort similar questions by Levenshtein distance
+		sort.Slice(similarQuestions, func(i, j int) bool {
+			return levenshteinDistance(processedQuestion, processText(similarQuestions[i])) < levenshteinDistance(processedQuestion, processText(similarQuestions[j]))
+		})
+		// select the 3 most similar questions
+		selectedQuestions := similarQuestions[:3]
+		// construct response message
+		var sb strings.Builder
+		sb.WriteString("Pertanyaan Anda tidak ditemukan. Pertanyaan yang mirip:\n")
+		for _, q := range selectedQuestions {
+			sb.WriteString(fmt.Sprintf("- %s\n", q))
+		}
+		return sb.String(), nil
+	}
+
+	return "", fmt.Errorf("Maaf, saya tidak mengerti pertanyaan Anda.")
 }
 
-func findAnswerKMP(question string, questions []string, answers []string) string {
-	mostSimilarQuestion, ok := findMostSimilarKMP(question, questions)
-	if ok {
-		for i, q := range questions {
-			if q == mostSimilarQuestion {
-				return answers[i]
-			}
-		}
-	} else {
-		var mostSimilarQuestions []string
-		var similarities []float64
-		for _, q := range questions {
-			similarity := float64(KMP(question, q)) / float64(len(q))
-			if similarity >= 0.9 {
-				mostSimilarQuestions = append(mostSimilarQuestions, q)
-				similarities = append(similarities, similarity)
-			}
-		}
-		if len(mostSimilarQuestions) > 0 {
-			// sort questions by similarity
-			sort.Slice(mostSimilarQuestions, func(i, j int) bool {
-				return similarities[i] > similarities[j]
-			})
-			// select top 3 most similar questions
-			if len(mostSimilarQuestions) > 3 {
-				mostSimilarQuestions = mostSimilarQuestions[:3]
-			}
-			return "Pertanyaan Anda tidak ditemukan dalam database. Mungkin pertanyaan berikut mirip dengan yang Anda maksud: " + strings.Join(mostSimilarQuestions, ", ")
-		}
-	}
-	return "Maaf, saya tidak mengerti pertanyaan Anda."
-}
+func levenshteinDistance(s, t string) int {
+	m := len(s)
+	n := len(t)
 
-// Knuth-Morris-Pratt algorithm
-func KMP(text, pattern string) int {
-	if len(pattern) == 0 {
-		return 0
+	if m == 0 {
+		return n
+	} else if n == 0 {
+		return m
 	}
-	prefix := prefix(pattern)
-	i := 0
-	j := 0
-	for i < len(text) {
-		if text[i] == pattern[j] {
-			i++
-			j++
-			if j == len(pattern) {
-				return i - j
-			}
-		} else {
-			if j == 0 {
-				i++
+
+	// initialize matrix
+	d := make([][]int, m+1)
+	for i := range d {
+		d[i] = make([]int, n+1)
+		d[i][0] = i
+	}
+	for j := 1; j <= n; j++ {
+		d[0][j] = j
+	}
+
+	// calculate distance
+	for j := 1; j <= n; j++ {
+		for i := 1; i <= m; i++ {
+			var cost int
+			if s[i-1] == t[j-1] {
+				cost = 0
 			} else {
-				j = prefix[j-1]
+				cost = 1
 			}
-		}
-	}
-	return -1
-}
 
-func prefix(pattern string) []int {
-	prefix := make([]int, len(pattern))
-	i := 1
-	j := 0
-	for i < len(pattern) {
-		if pattern[i] == pattern[j] {
-			prefix[i] = j + 1
-			i++
-			j++
-		} else {
-			if j == 0 {
-				prefix[i] = 0
-				i++
-			} else {
-				j = prefix[j-1]
-			}
+			d[i][j] = min(min(d[i-1][j]+1, d[i][j-1]+1), d[i-1][j-1]+cost)
 		}
 	}
-	return prefix
-}
 
-// mencari pertanyaan paling mirip menggunakan algoritma BM
-func findMostSimilarBM(question string, questions []string) (string, bool) {
-	var mostSimilarQuestion string
-	var similarity float64
-	for _, q := range questions {
-		match := BM(question, q)
-		if match >= 0 {
-			currentSimilarity := float64(len(q)) / float64(len(question))
-			if currentSimilarity > similarity {
-				similarity = currentSimilarity
-				mostSimilarQuestion = q
-			}
-		}
-	}
-	if similarity >= 0.9 {
-		return mostSimilarQuestion, true
-	} else {
-		return "", false
-	}
-}
-
-func findAnswerBM(question string, questions []string, answers []string) string {
-	// cari pertanyaan yang paling mirip dengan pertanyaan yang diberikan
-	mostSimilarQuestion, found := findMostSimilarKMP(question, questions)
-	if found {
-		// cari jawaban yang cocok dengan pertanyaan yang ditemukan
-		for i, q := range questions {
-			if q == mostSimilarQuestion {
-				return answers[i]
-			}
-		}
-	}
-	// jika tidak ditemukan pertanyaan yang cocok, cari satu pertanyaan yang paling mirip
-	var topQuestion string
-	var topSimilarity float64
-	for _, q := range questions {
-		similarity := float64(BM(question, q)) / float64(len(q))
-		if similarity > topSimilarity {
-			topQuestion = q
-			topSimilarity = similarity
-		}
-	}
-	if topSimilarity > 0.9 {
-		return fmt.Sprintf("Maaf, pertanyaan Anda tidak ditemukan. Apakah yang Anda maksud adalah:\n%s", topQuestion)
-	}
-	return "Maaf, saya tidak dapat menemukan jawaban untuk pertanyaan Anda."
-}
-
-// Boyer-Moore algorithm
-func BM(text, pattern string) int {
-	if len(pattern) == 0 {
-		return 0
-	}
-	last := last(pattern)
-	i := len(pattern) - 1
-	j := len(pattern) - 1
-	for i < len(text) {
-		if text[i] == pattern[j] {
-			if j == 0 {
-				return i
-			} else {
-				i--
-				j--
-			}
-		} else {
-			lo := last[int(text[i])]
-			i = i + len(pattern) - min(j, 1+lo)
-			j = len(pattern) - 1
-		}
-	}
-	return -1
-}
-
-func last(pattern string) []int {
-	last := make([]int, 256)
-	for i := 0; i < 256; i++ {
-		last[i] = -1
-	}
-	for i := 0; i < len(pattern); i++ {
-		last[int(pattern[i])] = i
-	}
-	return last
+	return d[m][n]
 }
 
 func min(a, b int) int {
@@ -201,17 +121,227 @@ func min(a, b int) int {
 	return b
 }
 
-var questions = []string{
-	"Apa saya bisa dapat IP4?",
-	"Kapan chatgpt ini dibuat?",
-	"Siapa yang membuat chatgpt ini?",
+func KMP(text string, pattern string) bool {
+	if len(pattern) == 0 {
+		return true
+	}
+
+	if len(text) == 0 {
+		return false
+	}
+
+	// Compute prefix table
+	prefix := make([]int, len(pattern))
+	j := 0
+	for i := 1; i < len(pattern); i++ {
+		for j > 0 && pattern[j] != pattern[i] {
+			j = prefix[j-1]
+		}
+		if pattern[j] == pattern[i] {
+			j++
+		}
+		prefix[i] = j
+	}
+
+	// Perform string matching
+	j = 0
+	for i := 0; i < len(text); i++ {
+		for j > 0 && pattern[j] != text[i] {
+			j = prefix[j-1]
+		}
+		if pattern[j] == text[i] {
+			j++
+		}
+		if j == len(pattern) {
+			return true
+		}
+	}
+
+	return false
 }
 
-var answers = []string{
-	"Tidak ada yang tidak mungkin",
-	"Chatbot ini dibuat pada tahun 2023.",
-	"Vieri, Fajar, dan Copa membuat chatbot ini.",
+func BM(text string, pattern string) bool {
+	n := len(text)
+	m := len(pattern)
+
+	if m == 0 {
+		return true
+	}
+
+	if n < m {
+		return false
+	}
+
+	// create bad character table
+	bc := make(map[byte]int)
+	for i := 0; i < m-1; i++ {
+		bc[pattern[i]] = m - i - 1
+	}
+
+	// search for pattern
+	i := m - 1
+	j := m - 1
+	for i < n {
+		if text[i] == pattern[j] {
+			if j == 0 {
+				return true
+			}
+			i--
+			j--
+		} else {
+			i += max(bc[text[i]], m-j)
+			j = m - 1
+		}
+	}
+
+	return false
 }
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func processText(text string) string {
+	// Remove leading and trailing whitespaces
+	text = strings.TrimSpace(text)
+	// Convert to lowercase
+	text = strings.ToLower(text)
+	// Replace multiple whitespaces with a single whitespace
+	text = regexp.MustCompile(`\s+`).ReplaceAllString(text, " ")
+	// Remove non-alphanumeric and non-whitespace characters
+	text = regexp.MustCompile(`[^[:alnum:]\s]`).ReplaceAllString(text, "")
+
+	return text
+}
+
+func deleteQuestionCheck(question string) bool {
+	pattern := regexp.MustCompile(`^hapus pertanyaan\s(.+)$`)
+	return pattern.MatchString(question)
+}
+
+func parsingDeleteQuestion(question string) string {
+	if deleteQuestionCheck(question) {
+		pattern := regexp.MustCompile(`^hapus pertanyaan\s(.+)$`)
+		return pattern.FindStringSubmatch(question)[1]
+	} else {
+		return ""
+	}
+}
+
+func updateQuestionCheck(question string) bool {
+	pattern := regexp.MustCompile(`^tambah pertanyaan\s(.+)\sdengan jawaban\s(.+)$`)
+	return pattern.MatchString(question)
+}
+
+func parsingUpdateQuestion(question string) []string {
+	if updateQuestionCheck(question) {
+		pattern := regexp.MustCompile(`^tambah pertanyaan\s(.+)\sdengan jawaban\s(.+)$`)
+		array := []string{pattern.FindStringSubmatch(question)[1], pattern.FindStringSubmatch(question)[2]}
+		return array
+	} else {
+		array := []string{"", ""}
+		return array
+	}
+}
+
+func dateCheck(date string) bool {
+	var pattern, _ = regexp.Compile(`([0-9]|[0-9][0-9])\/([0-9]|[0-9][0-9])\/([0-9]|[0-9][0-9]|[0-9][0-9][0-9]|[0-9][0-9][0-9][0-9])`)
+	return pattern.MatchString(date)
+}
+
+func parsingDate(date string) string {
+	if dateCheck(date) {
+		pattern, _ := regexp.Compile(`([0-9]|[0-9][0-9])\/([0-9]|[0-9][0-9])\/([0-9]|[0-9][0-9]|[0-9][0-9][0-9]|[0-9][0-9][0-9][0-9])`)
+		return pattern.FindStringSubmatch(date)[0]
+	} else {
+		return ""
+	}
+}
+
+func isValidDate(dateString string) bool {
+	_, err := time.Parse("02/01/2006", dateString)
+	return err == nil
+}
+
+func parsingValidDate(dateString string) string {
+	dateParts := strings.Split(dateString, "/")
+	day, _ := strconv.Atoi(dateParts[0])
+	month, _ := strconv.Atoi(dateParts[1])
+	year, _ := strconv.Atoi(dateParts[2])
+	var dayString, monthString, yearString string
+	if day%10 == day {
+		dayString = "0" + strconv.Itoa(day)
+	} else {
+		dayString = strconv.Itoa(day)
+	}
+
+	if month%10 == month {
+		monthString = "0" + strconv.Itoa(month)
+	} else {
+		monthString = strconv.Itoa(month)
+	}
+
+	if year%10 == year {
+		yearString = "000" + strconv.Itoa(year)
+	} else if year%100 == year {
+		yearString = "0" + strconv.Itoa(year)
+	} else if year%1000 == year {
+		yearString = "0" + strconv.Itoa(year)
+	} else {
+		yearString = strconv.Itoa(year)
+	}
+
+	return dayString + "/" + monthString + "/" + yearString
+}
+
+func getDay(date string) string {
+	if dateCheck(date) == false {
+		return "Format tanggal salah"
+	}
+	// Mengubah bulan Januari dan Februari menjadi bulan ke-13 dan ke-14
+	// dan mengurangi tahun sebanyak 1 untuk perhitungan
+	dateParts := strings.Split(date, "/")
+	day, _ := strconv.Atoi(dateParts[0])
+	month, _ := strconv.Atoi(dateParts[1])
+	year, _ := strconv.Atoi(dateParts[2])
+
+	if month == 1 || month == 2 {
+		month += 12
+		year -= 1
+	}
+	// Menghitung hari dalam minggu menggunakan rumus Zeller's congruence
+	// Rumus: h = (q + ((13*(m+1))/5) + K + (K/4) + (J/4) - 2*J) mod 7
+	// K = tahun % 100, J = tahun / 100
+	var q = day
+	var m = month
+	var K = year % 100
+	var J = year / 100
+
+	var h = (q + ((13 * (m + 1)) / 5) + K + (K / 4) + (J / 4) - 2*J) % 7
+
+	// Menentukan nama hari berdasarkan nilai h
+	var daysOfWeek = []string{"Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"}
+	return daysOfWeek[h]
+}
+
+func calculatorCheck(calculator string) bool {
+	pattern := regexp.MustCompile(`^(?:\d+|\(\s*(?:(?:\d+|[+\-*/^()])\s*)+\))(?:\s*[+\-*/^]\s*(?:\d+|\(\s*(?:(?:\d+|[+\-*/^()])\s*)+\)))*$`)
+	return pattern.MatchString(calculator)
+}
+
+func parsingCalculator(calculator string) string {
+	if calculatorCheck(calculator) {
+		pattern := regexp.MustCompile(`^(?:\d+|\(\s*(?:(?:\d+|[+\-*/^()])\s*)+\))(?:\s*[+\-*/^]\s*(?:\d+|\(\s*(?:(?:\d+|[+\-*/^()])\s*)+\)))*$`)
+		return pattern.FindStringSubmatch(calculator)[0]
+	} else {
+		return ""
+	}
+}
+
+
 
 func deleteQuestionCheck(question string) bool {
 	pattern := regexp.MustCompile(`^hapus pertanyaan\s(.+)$`)
