@@ -23,6 +23,7 @@ const Sidebar: React.FC<sidebarProps> = ({ className,setClickSide,value,setValue
   const handleDelete = (i : number) => {
     /* sementara  nanti disini update history */
     // setHistories(history.filter((history) => history.id !== i));
+    setChatLog([]);
     axios.delete('http://localhost:1234/histori',
     {
         params: {
