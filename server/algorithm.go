@@ -263,10 +263,12 @@ func isValidDate(dateString string) bool {
 }
 
 func parsingValidDate(dateString string) string {
+	fmt.Println(dateString)
 	dateParts := strings.Split(dateString, "/")
 	day, _ := strconv.Atoi(dateParts[0])
 	month, _ := strconv.Atoi(dateParts[1])
 	year, _ := strconv.Atoi(dateParts[2])
+	fmt.Println(day, month, year)
 	var dayString, monthString, yearString string
 	if day%10 == day {
 		dayString = "0" + strconv.Itoa(day)
@@ -280,11 +282,11 @@ func parsingValidDate(dateString string) string {
 		monthString = strconv.Itoa(month)
 	}
 
-	if year%10 == year {
+	if year < 10 {
 		yearString = "000" + strconv.Itoa(year)
-	} else if year%100 == year {
+	} else if year < 100 {
 		yearString = "0" + strconv.Itoa(year)
-	} else if year%1000 == year {
+	} else if year < 1000 {
 		yearString = "0" + strconv.Itoa(year)
 	} else {
 		yearString = strconv.Itoa(year)

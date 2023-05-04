@@ -54,7 +54,9 @@ type (
 )
 
 func connect() (*sql.DB, error) {
-	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)"+"/tubes3")
+	// db, err := sql.Open("mysql", "root:qwerty@tcp(127.0.0.1:3306)"+"/tubes3")
+	db, err := sql.Open("mysql", "poe:ocetengkyu@tcp(104.248.157.133:3306)"+"/teman2lemon")
+
 	if err != nil {
 		fmt.Println("error")
 	}
@@ -153,7 +155,7 @@ func findAnswer(c echo.Context) error {
 			status = addQuestionReq(question)
 			statusRespon = addResponReq(respon)
 			if status == "success" {
-				fmt.Println("Berhasil add respon")
+				fmt.Println("Berhasil add respon terupdate")
 			} else {
 				fmt.Println("Gagal add respon")
 			}
@@ -306,7 +308,7 @@ func findAnswer(c echo.Context) error {
 			fmt.Println("Gagal add respon")
 		}
 
-		return c.JSON(http.StatusOK, quest.Pertanyaan)
+		return c.JSON(http.StatusOK, answer)
 	}
 
 }
@@ -445,7 +447,10 @@ func addQuestionReq(quest Pertanyaan) string {
 	}
 
 	if result != nil {
-		update, err := db.Exec("UPDATE Pertanyaan SET Jawaban = ? WHERE Pertanyaan = ?", quest.Jawaban, quest.Pertanyaan)
+		fmt.Println("udah adaaa")
+		update, err := db.Exec("UPDATE pertanyaan SET jawaban = ? WHERE pertanyaan = ?", quest.Jawaban, quest.Pertanyaan)
+		fmt.Println("update ", update)
+		fmt.Println("error", err)
 		if err != nil {
 			return "err"
 		}
