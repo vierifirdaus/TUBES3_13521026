@@ -115,8 +115,10 @@ func findAnswer(c echo.Context) error {
 	listPertanyaanInput = strings.Split(quest.Pertanyaan, "\n")
 	var resultAnswer string
 	if len(listPertanyaanInput) == 1 {
+		fmt.Println("satu")
 		resultAnswer = parsingAnswer(quest.Pertanyaan, questHistori.ID_histori, questHistori.Jenis, c)
 	} else {
+		fmt.Println("dua")
 		for i := 0; i < len(listPertanyaanInput); i++ {
 			resultAnswer = resultAnswer + "Respon " + strconv.Itoa(i+1) + " " + parsingAnswer(listPertanyaanInput[i], questHistori.ID_histori, questHistori.Jenis, c) + "\n"
 		}

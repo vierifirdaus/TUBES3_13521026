@@ -31,7 +31,7 @@ const SideButton :React.FC<buttonProps> = ({history,clicked,handleClick,handleDe
     // // After save, set editing state to false to hide the text field
     // setName(history.nama);
     // console.log('history.nama changed to: ', history.nama)
-    axios.put('http://api-vieri.angkutin.my.id/histori',
+    axios.put('http://localhost:1234/histori',
     {
       new_name: editedName,  
       id_histori: history.id
@@ -39,7 +39,7 @@ const SideButton :React.FC<buttonProps> = ({history,clicked,handleClick,handleDe
       console.log(res.data);
       setName(editedName);
       setEditing(false);
-      axios.get('http://api-vieri.angkutin.my.id/allhistori').then((res) => {
+      axios.get('http://localhost:1234/allhistori').then((res) => {
         setHistories(res.data);
       }
       ).catch((err) => {
