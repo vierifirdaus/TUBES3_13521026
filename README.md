@@ -120,6 +120,7 @@ Frontend
    `cd Tubes3_13521026/src/client`
 3. Run `npm install` on the command line
 4. Run `npm run dev` on the command line
+5. Open in http://localhost:8080/
 
 Backend
 
