@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+type answerPredict struct {
+	Pertanyaan string
+	err        error
+}
+
 func findMatch(question string, questions []string, answers []string, algo string) (string, error) {
 	processedQuestion := processText(question)
 
@@ -22,11 +27,26 @@ func findMatch(question string, questions []string, answers []string, algo strin
 	}
 
 	// check for exact match using chosen algorithm
+	fmt.Println("1")
+	var answerPredictList []answerPredict
 	for i, q := range questions {
-		if matchFunc(processedQuestion, processText(q)) {
-			return answers[i], nil
+		// if matchFunc(processedQuestion, processText(q)) {
+		if matchFunc(processText(q), processedQuestion) {
+			answerPredictList = append(answerPredictList, answerPredict{answers[i], nil})
 		}
 	}
+
+	if len(answerPredictList) > 1 {
+		fmt.Println("2")
+		// sort answerPredictList by question length
+		sort.Slice(answerPredictList, func(i, j int) bool {
+			return len(questions[i]) < len(questions[j])
+		})
+		return answerPredictList[0].Pertanyaan, nil
+	} else if len(answerPredictList) == 1 {
+		return answerPredictList[0].Pertanyaan, nil
+	}
+	fmt.Println("3")
 
 	// check for approximate match using Levenshtein
 	bestScore := -1

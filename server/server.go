@@ -117,7 +117,6 @@ func findAnswer(c echo.Context) error {
 	if len(listPertanyaanInput) == 1 {
 		resultAnswer = parsingAnswer(quest.Pertanyaan, questHistori.ID_histori, questHistori.Jenis, c)
 	} else {
-		var resultAnswer string
 		for i := 0; i < len(listPertanyaanInput); i++ {
 			resultAnswer = resultAnswer + "Respon " + strconv.Itoa(i+1) + " " + parsingAnswer(listPertanyaanInput[i], questHistori.ID_histori, questHistori.Jenis, c) + "\n"
 		}
@@ -233,6 +232,9 @@ func parsingAnswer(questionInput string, ID_histori int, jenis string, c echo.Co
 		for _, item := range result {
 			jawabanList = append(jawabanList, item.Jawaban)
 		}
+		fmt.Println(pertanyaanList)
+		fmt.Println(jawabanList)
+
 		var answer string
 		if jenisSearching == "1" {
 			questionSimilar, hasil := findMatch(questionInput, pertanyaanList, jawabanList, "kmp")
@@ -575,6 +577,33 @@ func updateHistoriName(c echo.Context) error {
 	return c.JSON(http.StatusOK, "success")
 }
 
+func getAllQuest(c echo.Context) error {
+	db, err := connect()
+	if err != nil {
+		fmt.Println("error")
+	}
+	defer db.Close()
+
+	rows, err := db.Query("select pertanyaan,jawaban from pertanyaan")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	defer rows.Close()
+
+	var result []Pertanyaan
+	fmt.Println(rows)
+	for rows.Next() {
+		var each = Pertanyaan{}
+		var err = rows.Scan(&each.Pertanyaan, &each.Jawaban)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		result = append(result, each)
+	}
+	fmt.Println(result)
+	return c.JSON(http.StatusOK, result)
+}
+
 func main() {
 	e := echo.New()
 	// Middleware
@@ -589,6 +618,7 @@ func main() {
 	e.GET("histori", showHistori)
 	e.GET("chat", getChatFromId)
 	e.GET("allhistori", getAllHistori)
+	e.GET("allquest", getAllQuest)
 	e.POST("find", findAnswer)
 	e.POST("quest", addQuestion)
 	e.POST("respon", addRespon)
