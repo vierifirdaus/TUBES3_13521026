@@ -17,7 +17,7 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
     useEffect(() => {
         if (clickSide !== -1) {
             setIdHistori(clickSide)
-            axios.get('http://localhost:1234/histori',
+            axios.get('http://104.248.157.133:1234/histori',
                 {
                     params: {
                         Id_histori: clickSide
@@ -70,12 +70,12 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
 
     const updateHistory =async () => {
         const post = await
-        axios.post('http://localhost:1234/histori',
+        axios.post('http://104.248.157.133:1234/histori',
                 {
                     nama: inputValue
                 })
                 .then((res) => {
-                    axios.get('http://localhost:1234/allhistori')
+                    axios.get('http://104.248.157.133:1234/allhistori')
                     .then((res) => {
                         setHistories(res.data)
                         setCount(count+1)
@@ -95,7 +95,7 @@ const Chat : React.FC<chatProps> = ({className,clickSide,setHistories,setClicked
 
     const getBotResponse = async (id:number) => {
         setIsLoading(true)
-        axios.post('http://localhost:1234/find',{
+        axios.post('http://104.248.157.133:1234/find',{
             pertanyaan: inputValue,
             id_histori: id,
             jenis: value

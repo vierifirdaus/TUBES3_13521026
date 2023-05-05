@@ -22,7 +22,7 @@ const Sidebar: React.FC<sidebarProps> = ({ className,setClickSide,value,setValue
 
   const handleDelete = (i : number) => {
     setChatLog([]);
-    axios.delete('http://localhost:1234/histori',
+    axios.delete('http://104.248.157.133:1234/histori',
     {
         params: {
             Id_histori: i
@@ -30,7 +30,7 @@ const Sidebar: React.FC<sidebarProps> = ({ className,setClickSide,value,setValue
       })
       .then((res) => {
         console.log(res.data);
-        axios.get('http://localhost:1234/allhistori').then((res) => {
+        axios.get('http://104.248.157.133:1234/allhistori').then((res) => {
           setIsLoading(false);
           if(res.data == null){
             setClickSide(-1);
@@ -55,7 +55,7 @@ const Sidebar: React.FC<sidebarProps> = ({ className,setClickSide,value,setValue
   }
   useEffect(() => {
     setIsLoading(true);
-    axios.get('http://localhost:1234/allhistori').then((res) => {
+    axios.get('http://104.248.157.133:1234/allhistori').then((res) => {
       setIsLoading(false);
       if(res.data == null){
         setClickSide(-1);
