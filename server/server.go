@@ -111,149 +111,101 @@ func findAnswer(c echo.Context) error {
 
 	quest.Pertanyaan = strings.ToLower(quest.Pertanyaan)
 
+	var listPertanyaanInput []string
+	listPertanyaanInput = strings.Split(quest.Pertanyaan, "\n")
+	var resultAnswer string
+	if len(listPertanyaanInput) == 1 {
+		resultAnswer = parsingAnswer(quest.Pertanyaan, questHistori.ID_histori, questHistori.Jenis, c)
+	} else {
+		var resultAnswer string
+		for i := 0; i < len(listPertanyaanInput); i++ {
+			resultAnswer = resultAnswer + "Respon " + strconv.Itoa(i+1) + " " + parsingAnswer(listPertanyaanInput[i], questHistori.ID_histori, questHistori.Jenis, c) + "\n"
+		}
+	}
+
+	// nulis respon answer
+	var respon2 Respon
+	respon2.ID_histori = questHistori.ID_histori
+	respon2.Jenis = "output"
+	respon2.Isi = resultAnswer
+	statusRespon = addResponReq(respon2)
+	if statusRespon == "success" {
+		fmt.Println("Berhasil add respon")
+	} else {
+		fmt.Println("Gagal add respon")
+	}
 	//aman
-	if dateCheck(quest.Pertanyaan) {
-		var statusRespon string
-		var respon Respon
-		respon.ID_histori = questHistori.ID_histori
-		respon.Jenis = "output"
+	// return parsingAnswer(quest.Pertanyaan, questHistori.ID_histori, questHistori.Jenis, c)
+	return c.JSON(http.StatusOK, resultAnswer)
+}
+func parsingAnswer(questionInput string, ID_histori int, jenis string, c echo.Context) string {
+	if dateCheck(questionInput) {
 		var str1 string
-		str1 = parsingValidDate(parsingDate(quest.Pertanyaan))
+		str1 = parsingValidDate(parsingDate(questionInput))
 		fmt.Println(str1)
 		if isValidDate(str1) {
-			respon.Isi = "Hari dari tanggal " + parsingDate(quest.Pertanyaan) + " adalah " + getDay(parsingDate(quest.Pertanyaan))
-			statusRespon = addResponReq(respon)
-			if statusRespon == "success" {
-				fmt.Println("Berhasil add respon")
-			} else {
-				fmt.Println("Gagal add respon")
-			}
-
-			return c.JSON(http.StatusOK, "Hari dari tanggal "+parsingDate(quest.Pertanyaan)+" adalah "+getDay(parsingDate(quest.Pertanyaan)))
+			return "Hari dari tanggal " + parsingDate(questionInput) + " adalah " + getDay(parsingDate(questionInput))
 		} else {
-			respon.Isi = "Tanggal " + parsingDate(quest.Pertanyaan) + " tidak valid"
-			statusRespon = addResponReq(respon)
-			if statusRespon == "success" {
-				fmt.Println("Berhasil add respon")
-			} else {
-				fmt.Println("Gagal add respon")
-			}
-			return c.JSON(http.StatusOK, "Tanggal "+parsingDate(quest.Pertanyaan)+" tidak valid")
+			return "Tanggal " + parsingDate(questionInput) + " tidak valid"
 		}
-	} else if updateQuestionCheck(quest.Pertanyaan) { // aman
+	} else if updateQuestionCheck(questionInput) { // aman
 		var question Pertanyaan
-		question.Jawaban = parsingUpdateQuestion(quest.Pertanyaan)[1]
-		question.Pertanyaan = parsingUpdateQuestion(quest.Pertanyaan)[0]
+		question.Jawaban = parsingUpdateQuestion(questionInput)[1]
+		question.Pertanyaan = parsingUpdateQuestion(questionInput)[0]
 		var status string
 
-		var respon Respon
-		respon.ID_histori = questHistori.ID_histori
-		respon.Jenis = "output"
-
 		if questionCheck(question.Pertanyaan) {
-			respon.Isi = "Pertanyaan " + question.Pertanyaan + " sudah ada! Jawaban diupdate ke " + question.Jawaban
 			status = addQuestionReq(question)
-			statusRespon = addResponReq(respon)
 			if status == "success" {
-				fmt.Println("Berhasil add respon terupdate")
+				fmt.Println("Berhasil update question")
 			} else {
-				fmt.Println("Gagal add respon")
+				fmt.Println("Gagal update question")
 			}
-			return c.JSON(http.StatusOK, "Pertanyaan "+question.Pertanyaan+" sudah ada! Jawaban diupdate ke "+question.Jawaban)
+			return "Pertanyaan " + question.Pertanyaan + " sudah ada! Jawaban diupdate ke " + question.Jawaban
 		} else {
-			respon.Isi = "Pertanyaan " + question.Pertanyaan + "telah ditambahkan"
 			status = addQuestionReq(question)
-			statusRespon = addResponReq(respon)
 			if status == "success" {
-				fmt.Println("Berhasil add respon")
+				fmt.Println("Berhasil update question")
 			} else {
-				fmt.Println("Gagal add respon")
+				fmt.Println("Gagal update question")
 			}
-			return c.JSON(http.StatusOK, "Pertanyaan "+question.Pertanyaan+"telah ditambahkan")
+			return "Pertanyaan " + question.Pertanyaan + " telah ditambahkan"
 		}
-	} else if deleteQuestionCheck(quest.Pertanyaan) {
+	} else if deleteQuestionCheck(questionInput) {
 		var question string
-		question = parsingDeleteQuestion(quest.Pertanyaan)
+		question = parsingDeleteQuestion(questionInput)
 		var statusDelete string
 
 		if questionCheck(question) {
 			statusDelete = deleteQuestionReq(question)
-			var statusRespon string
-			var respon Respon
-			respon.ID_histori = questHistori.ID_histori
-			respon.Jenis = "output"
-			respon.Isi = "Pertanyaan " + question + " telah dihapus"
-			statusRespon = addResponReq(respon)
-			if statusRespon == "success" && statusDelete == "success" {
-				fmt.Println("Berhasil add respon")
+			if statusDelete == "success" {
+				fmt.Println("Berhasil delete question")
 			} else {
-				fmt.Println("Gagal add respon")
+				fmt.Println("Gagal delete question")
 			}
-			return c.JSON(http.StatusOK, "Pertanyaan "+question+" telah dihapus")
+			return "Pertanyaan " + question + " telah dihapus"
 		} else {
-			var statusRespon string
-			var respon Respon
-			respon.ID_histori = questHistori.ID_histori
-			respon.Jenis = "output"
-			respon.Isi = "Tidak ada pertanyaan " + question + " dalam database"
-			statusRespon = addResponReq(respon)
-			if statusRespon == "success" {
-				fmt.Println("Berhasil add respon")
-			} else {
-				fmt.Println("Gagal add respon")
-			}
-			return c.JSON(http.StatusOK, "Tidak ada pertanyaan "+question+" dalam database")
+			return "Tidak ada pertanyaan " + question + " dalam database"
 		}
-	} else if allMath(filterMath(quest.Pertanyaan)) && filterMath(quest.Pertanyaan) != "" {
+	} else if allMath(filterMath(questionInput)) && filterMath(questionInput) != "" {
 		var strOperation string
-		strOperation = filterMath(quest.Pertanyaan)
+		strOperation = filterMath(questionInput)
 		fmt.Println(strOperation, calculatorCheck(strOperation))
 		if calculatorCheck(strOperation) {
 			result, e := calculator(strOperation)
-			var respon Respon
-			respon.ID_histori = questHistori.ID_histori
-			respon.Jenis = "output"
 			if e == nil {
-				respon.Isi = "Hasil dari " + strOperation + " adalah " + strconv.FormatFloat(result, 'f', 2, 64)
-				var statusRespon = addResponReq(respon)
-				if statusRespon == "success" {
-					fmt.Println("Berhasil add respon")
-				} else {
-					fmt.Println("Gagal add respon")
-				}
-				return c.JSON(http.StatusOK, "Hasil dari "+strOperation+" adalah "+strconv.FormatFloat(result, 'f', 2, 64))
+				return "Hasil dari " + strOperation + " adalah " + strconv.FormatFloat(result, 'f', 2, 64)
 			} else {
-				respon.Isi = "Input tidak valid"
-				var statusRespon = addResponReq(respon)
-				if statusRespon == "success" {
-					fmt.Println("Berhasil add respon")
-				} else {
-					fmt.Println("Gagal add respon")
-				}
-				return c.JSON(http.StatusOK, "Input tidak valid")
+				return "Input tidak valid"
 			}
 		} else {
-			var respon Respon
-			respon.ID_histori = questHistori.ID_histori
-			respon.Jenis = "output"
-			respon.Isi = "Input tidak valid"
-			var statusRespon = addResponReq(respon)
-			if statusRespon == "success" {
-				fmt.Println("Berhasil add respon")
-			} else {
-				fmt.Println("Gagal add respon")
-			}
-			return c.JSON(http.StatusOK, "Input tidak valid")
+			return "Input tidak valid"
 		}
 	} else {
-		var statusRespon string
-		var respon Respon
-		respon.ID_histori = questHistori.ID_histori
-		respon.Jenis = "output"
-		jenisSearching := questHistori.Jenis
+		jenisSearching := jenis
 		db, err := connect()
 		if err != nil {
-			return c.JSON(http.StatusUnprocessableEntity, "error 2")
+			return "error database"
 		}
 		defer db.Close()
 
@@ -283,7 +235,7 @@ func findAnswer(c echo.Context) error {
 		}
 		var answer string
 		if jenisSearching == "1" {
-			questionSimilar, hasil := findMatch(quest.Pertanyaan, pertanyaanList, jawabanList, "kmp")
+			questionSimilar, hasil := findMatch(questionInput, pertanyaanList, jawabanList, "kmp")
 			if hasil == nil {
 				answer = questionSimilar
 			} else {
@@ -291,7 +243,7 @@ func findAnswer(c echo.Context) error {
 			}
 			fmt.Println("answer", answer)
 		} else {
-			questionSimilar, hasil := findMatch(quest.Pertanyaan, pertanyaanList, jawabanList, "bm")
+			questionSimilar, hasil := findMatch(questionInput, pertanyaanList, jawabanList, "bm")
 			if hasil == nil {
 				answer = questionSimilar
 			} else {
@@ -299,18 +251,8 @@ func findAnswer(c echo.Context) error {
 			}
 			fmt.Println("answer", answer)
 		}
-
-		respon.Isi = answer
-		statusRespon = addResponReq(respon)
-		if statusRespon == "success" {
-			fmt.Println("Berhasil add respon")
-		} else {
-			fmt.Println("Gagal add respon")
-		}
-
-		return c.JSON(http.StatusOK, answer)
+		return answer
 	}
-
 }
 
 func questionCheck(question string) bool {
@@ -644,14 +586,14 @@ func main() {
 		AllowOrigins: []string{"http://localhost:8080"},
 		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 	}))
+	e.GET("histori", showHistori)
+	e.GET("chat", getChatFromId)
+	e.GET("allhistori", getAllHistori)
 	e.POST("find", findAnswer)
 	e.POST("quest", addQuestion)
 	e.POST("respon", addRespon)
-	e.GET("histori", showHistori)
 	e.POST("histori", addHistori)
-	e.GET("chat", getChatFromId)
-	e.DELETE("histori", deleteHistori)
-	e.GET("allhistori", getAllHistori)
 	e.PUT("histori", updateHistoriName)
+	e.DELETE("histori", deleteHistori)
 	e.Logger.Fatal(e.Start(":1234"))
 }
