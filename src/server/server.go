@@ -186,7 +186,7 @@ func parsingAnswer(questionInput string, ID_histori int, jenis string, c echo.Co
 		} else {
 			return "Tidak ada pertanyaan " + question + " dalam database"
 		}
-	} else if allMath(filterMath(questionInput)) && filterMath(questionInput) != "" {
+	} else if calculatorCheck(questionInput) {
 		var strOperation string
 		strOperation = filterMath(questionInput)
 		fmt.Println(strOperation, calculatorCheck(strOperation))
