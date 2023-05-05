@@ -1,4 +1,4 @@
-# TUBES3_STIMA
+# Tugas Besar 3 Strategi Algoritma
 
 > Penerapan String Matching dan Regular Expression dalam Pembuatan ChatGPT Sederhana
 
@@ -10,15 +10,18 @@
 
 ## Table of Contents
 
-* [Desc](#deskripsi-umum)ription
-* [Te](#teknologi)chnology
-* [F](#fitur)eatures
-* Folders and Description
-* Setup
+* [Description](#description)
+* [Overview](#overview)
+* [Technology](#technology)
+* [Features](#features)
+* [Folders and Description](#folders-and-description)
+* [Setup](#setup)
 
 ## Description
 
 This web application, ChatGPT, is a simple chatbot that can assist users in finding answers to their questions. The application uses a straightforward QA approach by utilizing string matching algorithms such as Knuth-Morris-Pratt (KMP) and Boyer-Moore (BM) to find the most similar question to the one provided by the user. In addition, the application is equipped with various features such as text question, date feature, calculator feature, add question and answer to the database feature, and delete question feature. In conducting the search, the application uses the Levenshtein Distance method to calculate the similarity level between the user's question and the questions in the database. With its features, this application can help users quickly and easily find answers to their questions.
+
+## Overview
 
 ## Technology
 
@@ -34,9 +37,67 @@ This web application, ChatGPT, is a simple chatbot that can assist users in find
 - Adding questions and answers to the database
 - Deleting questions and answers from the database
 
-
 ## **Folders and Files Description**
 
+```
+.
+├── .DS_Store
+├── .github
+│   └── workflows
+│       └── go.yml
+├── build
+│   └── web.config
+├── doc
+├── README.md
+└── src
+    ├── client
+    │   ├── .eslintrc.cjs
+    │   ├── .gitignore
+    │   ├── index.html
+    │   ├── package-lock.json
+    │   ├── package.json
+    │   ├── postcss.config.js
+    │   ├── public
+    │   │   ├── logo.png
+    │   │   ├── send.png
+    │   │   ├── sendIcon.svg
+    │   │   └── user.png
+    │   ├── src
+    │   │   ├── App.css
+    │   │   ├── App.tsx
+    │   │   ├── assets
+    │   │   │   └── react.svg
+    │   │   ├── components
+    │   │   │   ├── chat.tsx
+    │   │   │   ├── message.tsx
+    │   │   │   ├── sendmessage.tsx
+    │   │   │   ├── sidebar.tsx
+    │   │   │   ├── sideButton.tsx
+    │   │   │   └── typingMessage.tsx
+    │   │   ├── index.css
+    │   │   ├── interface
+    │   │   │   └── index.tsx
+    │   │   ├── main.tsx
+    │   │   ├── pages
+    │   │   │   └── Home.tsx
+    │   │   ├── theme
+    │   │   │   ├── button.tsx
+    │   │   │   ├── Input.tsx
+    │   │   │   ├── textarea.tsx
+    │   │   │   └── theme.tsx
+    │   │   └── vite-env.d.ts
+    │   ├── tailwind.config.js
+    │   ├── tsconfig.json
+    │   ├── tsconfig.node.json
+    │   └── vite.config.ts
+    └── server
+        ├── algorithm.go
+        ├── calculator.go
+        ├── calender.go
+        ├── go.mod
+        ├── go.sum
+        └── server.go
+```
 
 ## Setup
 
@@ -46,7 +107,7 @@ This web application, ChatGPT, is a simple chatbot that can assist users in find
 * [React](https://reactjs.org/)
 * [Golang](https://go.dev/)
 
-### Compilation
+### How to Run
 
 Frontend
 
@@ -60,5 +121,4 @@ Frontend
 Backend
 
 1. Navigate to `/src/backend` folder
-2. Run `go get .` to make sure all dependencies installed
-3. Run `go run server.go`
+2. Run `go run server.go algorithm.go calculator.go calender.go`
